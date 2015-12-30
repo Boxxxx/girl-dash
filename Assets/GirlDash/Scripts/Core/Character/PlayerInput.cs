@@ -16,6 +16,13 @@ namespace GirlDash {
 
         void Update() {
             {
+                // Fire logic
+                if (Input.GetButtonDown("Fire1")) {
+                    controller_.Fire();
+                }
+            }
+
+            {
                 // Jump logic
                 if (Input.GetButtonDown("Jump")) {
                     controller_.Jump();
