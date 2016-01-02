@@ -2,95 +2,130 @@
 using System.Collections.Generic;
 
 namespace GirlDash {
-    using Node = LinkedListNode<ReuseableObject>;
-    public class ObjectPool : MonoBehaviour {
-        public int poolSize = 0;
-        public ReuseableObject prefab = null;
-        public bool autoLoad = true;
-        public bool createNewIfNotEnough = false;
+    public class ObjectPool {
+        [System.Serializable]
+        public struct Options {
+            [Tooltip("GameObject this ObjectPool holds. Must set.")]
+            public GameObject prefab;
+            [Tooltip("Size of objects to preloaded when ObjectPool is created")]
+            public int preloadSize;
+            [Tooltip("Max capacity of this ObjectPool. if it's zero, then it's equal to preloadSize.")]
+            public int maxCapacity;
+            [Tooltip("Allow pool to pick out a using object and recycle it when the maxCapacity is reached")]
+            public bool allowPoolToRecycle;
 
-        private LinkedList<ReuseableObject> unused_ = new LinkedList<ReuseableObject>();
-        private LinkedList<ReuseableObject> inused_ = new LinkedList<ReuseableObject>();
-
-        public int AvaliableCount {
-            get { return unused_.Count; }
-        }
-
-        public void Prepare() {
-            if (unused_.Count > 0) {
-                Free();
+            public string name {
+                get; private set;
             }
-            for (int i = 0; i < poolSize; i++) {
-                var obj = AllocateInternal();
-                Node node = unused_.AddLast(obj);
-                obj.Init(this, node);
+
+            public void Preprocess() {
+                if (maxCapacity <= 0) {
+                    maxCapacity = preloadSize;
+                }
+                name = prefab.name;
             }
         }
-        public void Prepare(int size) {
-            poolSize = size;
-            Prepare();
-        }
-        public void Prepare(int size, ReuseableObject prefab) {
-            this.prefab = prefab;
-            poolSize = size;
-            Prepare();
+
+        public Options options {
+            get; private set;
         }
 
-        public void Free() {
-            for (Node iter = inused_.First; iter != null; iter = iter.Next) {
-                GameObject.Destroy(iter.Value);
+        private List<ReuseableObject> unused_objs = new List<ReuseableObject>();
+        private HashSet<ReuseableObject> using_objs_ = new HashSet<ReuseableObject>();
+
+        public string name {
+            get { return options.prefab.name; }
+        }
+        public GameObject prefab {
+            get { return options.prefab; }
+        }
+        public int availableUnusedCnt {
+            get { return unused_objs.Count; }
+        }
+        public int loadedCnt {
+            get { return unused_objs.Count + using_objs_.Count; }
+        }
+        public Transform parentTransform {
+            get; private set;
+        }
+
+        public ObjectPool(Options options, Transform parent_transform) {
+            this.options = options;
+            parentTransform = parent_transform;
+
+            PreloadInternal();
+        }
+
+        public void FreeAll() {
+            foreach (var obj in using_objs_) {
+                GameObject.Destroy(obj);
             }
-            inused_.Clear();
-            for (Node iter = unused_.First; iter != null; iter = iter.Next) {
-                GameObject.Destroy(iter.Value);
+            using_objs_.Clear();
+            for (int i = 0; i < unused_objs.Count; i++) {
+                GameObject.Destroy(unused_objs[i]);
             }
-            unused_.Clear();
-
-            poolSize = 0;
+            unused_objs.Clear();
         }
 
-        public ReuseableObject Allocate() {
-            if (unused_.Count > 0) {
-                Node node = unused_.First;
-                unused_.Remove(node);
-                inused_.AddFirst(node);
+        public ReuseableObject Allocate(Vector3 position, Quaternion rotation) {
+            ReuseableObject obj = null;
 
-                node.Value.Active();
-                return node.Value;
+            if (unused_objs.Count > 0) {
+                // Case1: there is still available unused objects
+                obj = unused_objs[unused_objs.Count - 1];
+                unused_objs.RemoveAt(unused_objs.Count - 1);
+            } else if (loadedCnt < options.maxCapacity) {
+                // Case2: the pool has not reach its capacity, create new one
+                obj = PoolManager.Instance.CreateNew(options.prefab, this);
+            } else if (options.allowPoolToRecycle) {
+                // Case3: recycle a using objects
+                obj = RecycleOne();
             }
-            
-            if (createNewIfNotEnough) {
-                var obj = AllocateInternal();
-                var node = inused_.AddLast(obj);
-                obj.Init(this, node);
 
-                obj.Active();
-                return obj;
+            if (obj != null) {
+                using_objs_.Add(obj);
+                obj.transform.position = position;
+                obj.transform.rotation = rotation;
+                obj.gameObject.SetActive(true);
+                obj.OnAllocate();
             }
-            return null;
-        }
-
-        // Only used by ReusablePool
-        public void Deallocate(Node node) {
-            inused_.Remove(node);
-            unused_.AddLast(node);
-            node.Value.transform.parent = transform;
-        }
-
-        public T Allocate<T>() where T : ReuseableObject {
-            return Allocate() as T;
-        }
-        private ReuseableObject AllocateInternal() {
-            var obj = GameObject.Instantiate(prefab) as ReuseableObject;
-            obj.transform.parent = transform;
-            obj.gameObject.SetActive(false);
             return obj;
         }
 
-        void Start() {
-            if (autoLoad) {
-                Prepare();
+        public bool Deallocate(ReuseableObject obj) {
+            if (using_objs_.Remove(obj)) {
+                unused_objs.Add(obj);
+                obj.transform.parent = parentTransform;
+
+                obj.OnDeallocate();
+                obj.gameObject.SetActive(false);
+                return true;
             }
+            return false;
+        }
+
+        private void PreloadInternal() {
+            if (unused_objs.Count > 0) {
+                FreeAll();
+            }
+            for (int i = 0; i < options.preloadSize; i++) {
+                var obj = PoolManager.Instance.CreateNew(options.prefab, this);
+                unused_objs.Add(obj);
+            }
+        }
+
+        /// <summary>
+        /// Recycles one object from using pool, if there is not any active objects, return null.
+        /// </summary>
+        /// <returns></returns>
+        private ReuseableObject RecycleOne() {
+            if (using_objs_.Count > 0) {
+                foreach (var obj in using_objs_) {
+                    Deallocate(obj);
+                    return obj;
+                }
+            }
+            return null;
         }
     }
 }

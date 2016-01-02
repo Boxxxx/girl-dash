@@ -31,7 +31,7 @@ namespace GirlDash {
             current_time_ += Time.deltaTime;
 
             if (current_time_ > lifeTime) {
-                Deactive();
+                PoolManager.Deallocate(gameObject);
                 return;
             }
 

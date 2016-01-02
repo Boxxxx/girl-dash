@@ -16,7 +16,6 @@ namespace GirlDash {
         public float jumpForce = 1000f;
         public Vector2 firePositionFluctuation = new Vector2(0, 0.1f);
         public float fireDirectionFluctuation = 5f;
-        public ObjectPool bulletPool;
 
         public bool isGrounded {
             get;
@@ -40,7 +39,10 @@ namespace GirlDash {
         private float move_axis_ = 0f;
 
         public void Fire() {
-            var bullet = bulletPool.Allocate<Bullet>();
+            var bullet = PoolManager.Allocate("RifleBullet") as Bullet;
+            if (bullet == null) {
+                return;
+            }
             bullet.transform.position = muzzle_.position + RandomVector(firePositionFluctuation);
 
             Vector2 direction = isFaceRight ? Vector2.right : Vector2.left;
