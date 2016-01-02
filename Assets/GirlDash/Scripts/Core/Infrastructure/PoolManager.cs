@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace GirlDash {
     public class PoolManager : SingletonObject<PoolManager> {
+        [Tooltip("If set to false, then the allocate & deallocate will be deliver to unity directly.")]
+        public bool usePoolManager = true;
         public List<ObjectPool.Options> poolOptions = new List<ObjectPool.Options>();
-        public bool showDebugLog = true;
+        public bool showDebugLog = false;
         public bool dontDestroyOnLoad = false;
         public bool autoAddMissingPrefabPool = true;
 
@@ -36,7 +39,7 @@ namespace GirlDash {
             return NewPool(options);
         }
 
-        private ReuseableObject AllocateInternal(string name, Vector3 position, Quaternion rotation) {
+        private GameObject AllocateInternal(string name, Vector3 position, Quaternion rotation) {
             if (showDebugLog) {
                 Debug.Log("Allocate object " + name);
             }
@@ -49,7 +52,7 @@ namespace GirlDash {
 
             return pool.Allocate(position, rotation);
         }
-        private ReuseableObject AllocateInternal(GameObject prefab, Vector3 position, Quaternion rotation) {
+        private GameObject AllocateInternal(GameObject prefab, Vector3 position, Quaternion rotation) {
             ObjectPool pool;
             if (!pools_.TryGetValue(prefab.name, out pool)) {
                 if (autoAddMissingPrefabPool) {
@@ -63,7 +66,7 @@ namespace GirlDash {
             return AllocateInternal(prefab.name, position, rotation);
         }
 
-        private bool DeallocateInternal(ReuseableObject obj) {
+        private bool DeallocateInternal(GameObject obj) {
             if (showDebugLog) {
                 Debug.Log("Deallocate object " + obj.name);
             }
@@ -71,14 +74,6 @@ namespace GirlDash {
             ObjectPool pool;
             if (instance_to_pool_map.TryGetValue(obj.gameObject, out pool)) {
                 return pool.Deallocate(obj);
-            } else {
-                return false;
-            }
-        }
-        private bool DeallocateInternal(GameObject obj) {
-            var reusable = obj.GetComponent<ReuseableObject>();
-            if (reusable != null) {
-                return DeallocateInternal(reusable);
             } else {
                 return false;
             }
@@ -93,60 +88,98 @@ namespace GirlDash {
             }
         }
 
-        public ReuseableObject CreateNew(GameObject prefab, ObjectPool pool) {
+        public GameObject CreateNew(GameObject prefab, ObjectPool pool) {
             GameObject new_obj = GameObject.Instantiate(prefab) as GameObject;
             instance_to_pool_map[new_obj] = pool;
-
-            ReuseableObject reusable = new_obj.GetComponent<ReuseableObject>();
-            if (reusable == null) {
-                // If there is on ReusableObject component, create default one.
-                reusable = new_obj.AddComponent<DefaultReusableObject>();
-            }
-            reusable.transform.parent = pool.parentTransform;
-            reusable.gameObject.SetActive(false);
-            return reusable;
+            new_obj.transform.parent = pool.parentTransform;
+            new_obj.gameObject.SetActive(false);
+            return new_obj;
         }
 
         void Awake() {
-            DontDestroyOnLoad(gameObject);
+            if (Instance != this) {
+                // If it is not the singleton instance, destroy self.
+                GameObject.Destroy(gameObject);
+                return;
+            }
+
+            if (dontDestroyOnLoad) {
+                DontDestroyOnLoad(gameObject);
+            }
 
             for (int i = 0; i < poolOptions.Count; i++) {
                 NewPool(poolOptions[i]);
             }
         }
 
-        void Start() {
-            Init();
-            float start_time = Time.realtimeSinceStartup;
-            for (int i = 0; i < 1000; i++) {
-                var obj = Allocate("RifleBullet");
-                Deallocate(obj);
+        /// <summary>
+        // Since all active objects will be destroyed by Unity when the scene is destroyed.
+        // We should preload new asset and cleanup old ones when the level was loaded.
+        /// </summary>
+        void OnLevelWasLoaded(int unused_level) {
+            foreach (var pool_pair in pools_) {
+                pool_pair.Value.RecoverObjects(true);
             }
-            Debug.Log("Time used " + (Time.realtimeSinceStartup - start_time));
         }
 
         #region Static interfaces
         public static void Init() {
             var unused_instance = Instance;
-            // no-op, just to create instance and call Awake()
+            // no-op, just used to create the singleton instance.
         }
-        public static ReuseableObject Allocate(string name, Vector3 position, Quaternion rotation) {
+        public static GameObject Allocate(string name, Vector3 position, Quaternion rotation) {
+            if (!Instance.usePoolManager) {
+                Debug.LogError("Can't allocate by name when usePoolManager=false");
+                return null;
+            }
             return Instance.AllocateInternal(name, position, rotation);
         }
-        public static ReuseableObject Allocate(string name) {
-            return Instance.AllocateInternal(name, Vector3.zero, Quaternion.identity);
+        public static GameObject Allocate(string name) {
+            return Allocate(name, Vector3.zero, Quaternion.identity);
         }
-        public static ReuseableObject Allocate(GameObject prefab, Vector3 position, Quaternion rotation) {
+        public static T Allocate<T>(string name, Vector3 position, Quaternion rotation) where T : Component {
+            var game_object = Allocate(name, position, rotation);
+            if (game_object != null) {
+                return game_object.GetComponent<T>();
+            } else {
+                return null;
+            }
+        }
+        public static T Allocate<T>(string name) where T : Component {
+            return Allocate<T>(name, Vector3.zero, Quaternion.identity);
+        }
+
+        public static GameObject Allocate(GameObject prefab, Vector3 position, Quaternion rotation) {
+            if (!Instance.usePoolManager) {
+                return GameObject.Instantiate(prefab, position, rotation) as GameObject;
+            }
             return Instance.AllocateInternal(prefab, position, rotation);
         }
-        public static ReuseableObject Allocate(GameObject prefab) {
-            return Instance.AllocateInternal(prefab, Vector3.zero, Quaternion.identity);
+        public static GameObject Allocate(GameObject prefab) {
+            return Allocate(prefab, Vector3.zero, Quaternion.identity);
         }
-        public static bool Deallocate(ReuseableObject obj) {
-            return Instance.DeallocateInternal(obj);
+        public static T Allocate<T>(GameObject prefab, Vector3 position, Quaternion rotation) where T : Component {
+            var game_object = Allocate(prefab, position, rotation);
+            if (game_object != null) {
+                return game_object.GetComponent<T>();
+            }
+            else {
+                return null;
+            }
         }
+        public static T Allocate<T>(GameObject prefab) where T : Component {
+            return Allocate<T>(prefab, Vector3.zero, Quaternion.identity);
+        }
+
         public static bool Deallocate(GameObject obj) {
+            if (!Instance.usePoolManager) {
+                GameObject.Destroy(obj);
+                return true;
+            }
             return Instance.DeallocateInternal(obj);
+        }
+        public static bool Deallocate(Component comp) {
+            return Instance.DeallocateInternal(comp.gameObject);
         }
         #endregion
     }

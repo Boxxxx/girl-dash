@@ -2,7 +2,7 @@
 using System.Collections;
 
 namespace GirlDash {
-    public class Bullet : ReuseableObject {
+    public class Bullet : MonoBehaviour {
         public float speed = 5f;
         public float lifeTime = 10f;
 

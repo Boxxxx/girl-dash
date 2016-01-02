@@ -39,7 +39,7 @@ namespace GirlDash {
         private float move_axis_ = 0f;
 
         public void Fire() {
-            var bullet = PoolManager.Allocate("RifleBullet") as Bullet;
+            var bullet = PoolManager.Allocate<Bullet>("RifleBullet");
             if (bullet == null) {
                 return;
             }
