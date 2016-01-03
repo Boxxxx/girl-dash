@@ -83,9 +83,7 @@ namespace GirlDash {
             bool new_grounded = GroundedTest();
             if (new_grounded != isGrounded) {
                 isGrounded = new_grounded;
-                if (new_grounded) {
-                    animator_.SetTrigger(AnimatorParameters.Grounded);
-                }
+                animator_.SetBool(AnimatorParameters.Grounded, new_grounded);
             }
         }
 
