@@ -9,13 +9,10 @@ namespace GirlDash.Map {
             TerrianComponent comp;
             switch (data.terrianType) {
                 case TerrainData.TerrianType.Ground:
-                    comp = PoolManager.Allocate(ground);
-                    break;
+                    return comp = PoolManager.Allocate(ground);
                 default:
                     throw new System.NotImplementedException("Not implemented terrian type: " + data.terrianType);
             }
-            comp.BuildSelf(data);
-            return comp;
         }
     }
 }

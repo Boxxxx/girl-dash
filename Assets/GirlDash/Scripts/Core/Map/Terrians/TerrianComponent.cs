@@ -16,12 +16,13 @@ namespace GirlDash.Map {
         }
         private bool is_dirty = false;
 
-        public void BuildSelf(TerrainData data) {
+        public void BuildSelf(TerrainData data, Transform parent_tranform) {
             if (is_dirty) {
                 Cleanup();
             }
             is_dirty = true;
 
+            transform.parent = parent_tranform;
             this.data = data;
 
             Init();

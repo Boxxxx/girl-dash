@@ -12,9 +12,13 @@ namespace GirlDash.Map {
             get { return blockData.bound; }
         }
 
-        public MapBlock(BlockData block_data, MapFactory factory) {
+        public MapBlock(BlockData block_data, Transform parent_transform, MapFactory factory) {
+            blockData = block_data;
+
             for (int i = 0; i < blockData.terrians.Count; i++) {
-                terrians.Add(factory.CreateTerrian(blockData.terrians[i]));
+                var terrian = factory.CreateTerrian(blockData.terrians[i]);
+                terrian.BuildSelf(blockData.terrians[i], parent_transform);
+                terrians.Add(terrian);
             }
         }
 
@@ -71,6 +75,8 @@ namespace GirlDash.Map {
         }
 
         public void Reset(MapData map_data) {
+            mapData = map_data;
+
             // Reset varialbes
             progress = 0;
             next_block_index_ = 0;
@@ -137,7 +143,7 @@ namespace GirlDash.Map {
             if (next_block_index_ >= mapData.blocks.Count) {
                 return false;
             }
-            blocks_.Add(new MapBlock(mapData.blocks[next_block_index_++], map_factory));
+            blocks_.Add(new MapBlock(mapData.blocks[next_block_index_++], terrianFolder, map_factory));
             return true;
         }
 
@@ -163,12 +169,11 @@ namespace GirlDash.Map {
             map_data.deadHeight = -1;
 
             var block_data = new BlockData();
-
             var terrain_data = new GirlDash.Map.TerrainData();
-            terrain_data.terrianType = TerrainData.TerrianType.Ground;
-            terrain_data.region = 
+            terrain_data.region = new MapRect(0, 0, 10, 1);
+            block_data.terrians.Add(terrain_data);
 
-            map_data.blocks.Add(blocks_data);
+            map_data.blocks.Add(block_data);
 
             return map_data;
         }

@@ -45,9 +45,9 @@ namespace GirlDash.Map {
     [System.Serializable]
     public class BlockData {
         public MapRect bound;
-        public List<TerrainData> terrians;
-        public List<EnemyData> enemies;
-        public List<WidgetData> widgets;
+        public List<TerrainData> terrians = new List<TerrainData>();
+        public List<EnemyData> enemies = new List<EnemyData>();
+        public List<WidgetData> widgets = new List<WidgetData>();
     }
 
     /// <summary>
@@ -79,6 +79,6 @@ namespace GirlDash.Map {
         /// and dynamically build a new block so that the total number of blocks are 5.
         /// Therefore, we can have unlimited map blocks.
         /// </summary>
-        public List<BlockData> blocks;
+        public List<BlockData> blocks = new List<BlockData>();
     }
 }
