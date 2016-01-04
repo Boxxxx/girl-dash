@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
 namespace GirlDash.Map {
-    public abstract class TerrianComponent : MonoBehaviour {
+    public abstract class TerrainComponent : MonoBehaviour {
         public const string kGraphicsTransformName = "graphics";
 
-        public TerrianStyle style;
+        public TerrainStyle style;
         public Transform graphics;
 
         public Rect bound { get; private set; }
@@ -51,7 +51,7 @@ namespace GirlDash.Map {
         /// Notice the return value will override the collider field, so that this function can create a new collider to replace old one.
         /// </summary>
         protected abstract Collider2D BuildCollider(TerrainData data);
-        protected abstract void BuildGraphics(TerrainData data, TerrianStyle style);
+        protected abstract void BuildGraphics(TerrainData data, TerrainStyle style);
 
         protected virtual void Awake() { }
     }

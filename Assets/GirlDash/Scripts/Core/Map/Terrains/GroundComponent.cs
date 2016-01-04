@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GirlDash.Map {
     [RequireComponent(typeof(BoxCollider2D))]
-    public class GroundComponent : TerrianComponent {
+    public class GroundComponent : TerrainComponent {
         private BoxCollider2D collider_;
         private List<Transform> sprites_ = new List<Transform>();
         
@@ -13,7 +13,7 @@ namespace GirlDash.Map {
             collider_.size = region_rect.size;
             return collider_;
         }
-        protected override void BuildGraphics(TerrainData data, TerrianStyle style) {
+        protected override void BuildGraphics(TerrainData data, TerrainStyle style) {
             for (int i = 0; i < data.region.width; i++) {
                 for (int j = 0; j < data.region.height; j++) {
                     var sprite = PoolManager.Allocate(style.groundUnitSprite);

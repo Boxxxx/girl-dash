@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GirlDash.Map {
     public class MapBlock {
-        public List<TerrianComponent> terrians = new List<TerrianComponent>();
+        public List<TerrainComponent> terrains = new List<TerrainComponent>();
 
         public BlockData blockData {
             get; private set;
@@ -15,18 +15,18 @@ namespace GirlDash.Map {
         public MapBlock(BlockData block_data, Transform parent_transform, MapFactory factory) {
             blockData = block_data;
 
-            for (int i = 0; i < blockData.terrians.Count; i++) {
-                var terrian = factory.CreateTerrian(blockData.terrians[i]);
-                terrian.BuildSelf(blockData.terrians[i], parent_transform);
-                terrians.Add(terrian);
+            for (int i = 0; i < blockData.terrains.Count; i++) {
+                var terrain = factory.CreateTerrain(blockData.terrains[i]);
+                terrain.BuildSelf(blockData.terrains[i], parent_transform);
+                terrains.Add(terrain);
             }
         }
 
         public void RecycleSelf() {
-            for (int i = 0; i < terrians.Count; i++) {
-                terrians[i].RecycleSelf();
+            for (int i = 0; i < terrains.Count; i++) {
+                terrains[i].RecycleSelf();
             }
-            terrians.Clear();
+            terrains.Clear();
         }
     }
 
@@ -34,7 +34,7 @@ namespace GirlDash.Map {
     public class MapManager : MonoBehaviour {
         [Tooltip("Minimum of number of blocks that is cached.")]
         public int minBlocksToCacheup = 5;
-        public Transform terrianFolder;
+        public Transform terrainFolder;
 
         /// <summary>
         /// What's really needed here is a dequeue, but we have only a couple of blocks (less than 10) in this group,
@@ -53,17 +53,17 @@ namespace GirlDash.Map {
 
         private void InitBoundingColliders() {
             MapUtils.CreateBoxCollider(
-                "wallLeft", terrianFolder,
+                "wallLeft", terrainFolder,
                 new MapRect(-MapConstants.kWallThickness, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
             MapUtils.CreateBoxCollider(
-                "wallRight", terrianFolder,
+                "wallRight", terrainFolder,
                 new MapRect(mapData.width, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
         }
         private void InitDeadArea() {
             dead_area = MapUtils.CreateBoxCollider(
-                "deadArea", terrianFolder,
+                "deadArea", terrainFolder,
                 new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.width, MapConstants.kWallThickness),
                 false /* is_trigger */);
         }
@@ -88,7 +88,7 @@ namespace GirlDash.Map {
             blocks_.Clear();
 
             // Clear all folders
-            ClearFolder(terrianFolder);
+            ClearFolder(terrainFolder);
 
             // Initial build
             InitialBuild();
@@ -143,7 +143,7 @@ namespace GirlDash.Map {
             if (next_block_index_ >= mapData.blocks.Count) {
                 return false;
             }
-            blocks_.Add(new MapBlock(mapData.blocks[next_block_index_++], terrianFolder, map_factory));
+            blocks_.Add(new MapBlock(mapData.blocks[next_block_index_++], terrainFolder, map_factory));
             return true;
         }
 
@@ -171,7 +171,7 @@ namespace GirlDash.Map {
             var block_data = new BlockData();
             var terrain_data = new GirlDash.Map.TerrainData();
             terrain_data.region = new MapRect(0, 0, 10, 1);
-            block_data.terrians.Add(terrain_data);
+            block_data.terrains.Add(terrain_data);
 
             map_data.blocks.Add(block_data);
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace GirlDash.Map {
     [System.Serializable]
     public class TerrainData {
-        public enum TerrianType {
+        public enum TerrainType {
             Ground
         }
         public enum InteractiveType {
@@ -12,7 +12,7 @@ namespace GirlDash.Map {
             Harmful,
             Oneshot
         }
-        public TerrianType terrianType = TerrianType.Ground;
+        public TerrainType terrainType = TerrainType.Ground;
         public InteractiveType interactiveType = InteractiveType.Solid;
 
         public MapRect region;
@@ -45,7 +45,7 @@ namespace GirlDash.Map {
     [System.Serializable]
     public class BlockData {
         public MapRect bound;
-        public List<TerrainData> terrians = new List<TerrainData>();
+        public List<TerrainData> terrains = new List<TerrainData>();
         public List<EnemyData> enemies = new List<EnemyData>();
         public List<WidgetData> widgets = new List<WidgetData>();
     }
