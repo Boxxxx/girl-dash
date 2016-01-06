@@ -9,7 +9,7 @@ namespace GirlDash.Map {
         
         protected override Collider2D BuildCollider(TerrainData data) {
             Rect region_rect = (Rect)data.region;
-            collider_.offset = new Vector2(region_rect.center.x, -region_rect.center.y);
+            collider_.offset = new Vector2(region_rect.width * 0.5f, -region_rect.height * 0.5f);
             collider_.size = region_rect.size;
             return collider_;
         }

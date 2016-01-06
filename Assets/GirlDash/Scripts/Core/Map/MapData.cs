@@ -5,7 +5,8 @@ namespace GirlDash.Map {
     [System.Serializable]
     public class TerrainData {
         public enum TerrainType {
-            Ground
+            Ground,
+            Widget
         }
         public enum InteractiveType {
             Solid,
@@ -16,6 +17,9 @@ namespace GirlDash.Map {
         public InteractiveType interactiveType = InteractiveType.Solid;
 
         public MapRect region;
+        public MapVector center {
+            get { return new MapVector(region.x + (region.width >> 1), region.y + (region.height >> 1)); }
+        }
     }
 
     [System.Serializable]
@@ -34,20 +38,10 @@ namespace GirlDash.Map {
     }
 
     [System.Serializable]
-    public class WidgetData {
-        public enum WidgetType {
-            Decorator
-        }
-        public WidgetType widgetType = WidgetType.Decorator;
-        public MapVector spawnPosition;
-    }
-
-    [System.Serializable]
     public class BlockData {
-        public MapRect bound;
-        public List<TerrainData> terrains = new List<TerrainData>();
-        public List<EnemyData> enemies = new List<EnemyData>();
-        public List<WidgetData> widgets = new List<WidgetData>();
+        public MapVector bound;
+        public TerrainData[] terrains = new TerrainData[] { };
+        public EnemyData[] enemies = new EnemyData[] { };
     }
 
     /// <summary>
@@ -65,7 +59,7 @@ namespace GirlDash.Map {
         /// </summary>
         public MapValue sightRange;
         /// <summary>
-        /// width of map area, the left and right border will be blocked by wall
+        /// width of map area, the left and right border will be blocked by wall.
         /// </summary>
         public MapValue width;
         /// <summary>

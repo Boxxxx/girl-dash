@@ -8,14 +8,14 @@ namespace GirlDash.Map {
         public BlockData blockData {
             get; private set;
         }
-        public MapRect bound {
+        public MapVector bound {
             get { return blockData.bound; }
         }
 
         public MapBlock(BlockData block_data, Transform parent_transform, MapFactory factory) {
             blockData = block_data;
 
-            for (int i = 0; i < blockData.terrains.Count; i++) {
+            for (int i = 0; i < blockData.terrains.Length; i++) {
                 var terrain = factory.CreateTerrain(blockData.terrains[i]);
                 terrain.BuildSelf(blockData.terrains[i], parent_transform);
                 terrains.Add(terrain);
@@ -105,7 +105,7 @@ namespace GirlDash.Map {
             // Step1: Try to recycle the out-of-sight block in left side.
             while (blocks_.Count > 0) {
                 var block = blocks_[0];
-                if (block.bound.xMax < left_bound) {
+                if (block.bound.x < left_bound) {
                     // If this leftmost block is out of sight, recycle it.
                     block.RecycleSelf();
                     blocks_.RemoveAt(0);
@@ -126,7 +126,7 @@ namespace GirlDash.Map {
             // Step3: Try to add the right block that is going to in sight.
             while (blocks_.Count > 0) {
                 var block = blocks_[blocks_.Count - 1];
-                if (block.bound.xMax < right_bound) {
+                if (block.bound.max < right_bound) {
                     // If the rightmost block is not enough to cover all sight range, add a new one.
                     if (!CacheupNextBlock()) {
                         // If there is no next block, just return.
@@ -164,18 +164,21 @@ namespace GirlDash.Map {
         /// For test only
         /// </summary>
         private MapData CreateMockMapData() {
-            var map_data = new MapData();
-            map_data.width = 21;
-            map_data.deadHeight = -1;
+            SimpleMapBuilder builder = new SimpleMapBuilder(new SimpleMapBuilder.Options());
 
-            var block_data = new BlockData();
-            var terrain_data = new GirlDash.Map.TerrainData();
-            terrain_data.region = new MapRect(0, 0, 10, 1);
-            block_data.terrains.Add(terrain_data);
+            int num_ground = 10;
+            MapVector random_ground_width_range = new MapVector(3, 10);
+            MapVector random_ground_offset_range = new MapVector(0, 3);
 
-            map_data.blocks.Add(block_data);
+            builder.NewGround(
+                0, Random.Range(Mathf.Max(7, random_ground_width_range.x), random_ground_width_range.y));
+            for (int i = 1; i < num_ground; i++) {
+                builder.NewGround(
+                    Random.Range(random_ground_offset_range.x, random_ground_offset_range.y),
+                    Random.Range(random_ground_width_range.x, random_ground_width_range.y));
+            }
 
-            return map_data;
+            return builder.Build();
         }
     }
 }

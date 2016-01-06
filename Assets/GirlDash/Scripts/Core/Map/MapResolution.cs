@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 namespace GirlDash.Map {
     public static class MapResolution {
@@ -9,8 +8,11 @@ namespace GirlDash.Map {
     /// Represents a vector in map resolution.
     /// </summary>
     public struct MapVector {
-        public float x { get; private set; }
-        public float y { get; private set; }
+        public int x { get; private set; }
+        public int y { get; private set; }
+        public int min { get { return x; } }
+        public int max { get { return y; } }
+        public int length { get { return y - x; } }
 
         public MapVector(int x, int y) {
             this.x = x;
@@ -97,6 +99,19 @@ namespace GirlDash.Map {
             get { return y + height; }
         }
 
+        public MapVector topLeft {
+            get { return new MapVector(x, y + height); }
+        }
+        public MapVector topRight {
+            get { return new MapVector(x + width, y + height); }
+        }
+        public MapVector bottomLeft {
+            get { return new MapVector(x, y); }
+        }
+        public MapVector bottomRight {
+            get { return new MapVector(x + width, y); }
+        }
+
         public MapRect(int x, int y, int width, int height) {
             this.x = x;
             this.y = y;
@@ -106,6 +121,10 @@ namespace GirlDash.Map {
 
         public static MapRect MinMaxRect(int x_min, int y_min, int x_max, int y_max) {
             return new MapRect(x_min, y_min, x_max - x_min, y_max - y_min);
+        }
+
+        public static MapRect FromPoint(MapVector point) {
+            return new MapRect(point.x, point.y, 0, 0);
         }
 
         public static explicit operator Rect(MapRect rect) {
