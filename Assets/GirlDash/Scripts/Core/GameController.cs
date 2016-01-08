@@ -12,7 +12,7 @@ namespace GirlDash {
         public bool move = true;
 
         void Update() {
-            progress = startingLine.GetOffset(heroController.transform).x - 5.68f;
+            progress = startingLine.GetOffset(heroController.transform).x;
 
             mapManager.UpdateProgress(progress);
 

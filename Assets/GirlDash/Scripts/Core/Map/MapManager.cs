@@ -103,8 +103,10 @@ namespace GirlDash.Map {
         }
 
         private void RefreshBlocks() {
-            MapValue left_bound = MapValue.LowerBound(progress);
-            MapValue right_bound = MapValue.UpperBound(progress + (float)mapData.sightRange);
+            // Calcualtes the left and right bound value in map resolution,
+            // use lower as left and upper as right to make sure it includes the whole sight view.
+            MapValue left_bound = MapValue.LowerBound(progress) + mapData.sightRange.min;
+            MapValue right_bound = MapValue.UpperBound(progress) + mapData.sightRange.max;
 
             // Step1: Try to recycle the out-of-sight block in left side.
             while (map_blocks.Count > 0) {

@@ -55,9 +55,13 @@ namespace GirlDash.Map {
     [System.Serializable]
     public class MapData {
         /// <summary>
-        /// sight range of this map, usually it's the upper bound of screen width.
+        /// Sight range of this map.
+        /// Suppose the player is at position (0, 0), the sightRange shows the range which the player can see. both left and right border are inclusive.
+        /// 
+        /// For example, the sightRange is [-5, 5], and the player is at 3, total sight view is [-2, 8].
+        /// To make it safer, we often set both left & right to the upper bound of width of screen.
         /// </summary>
-        public MapValue sightRange;
+        public MapVector sightRange;
         /// <summary>
         /// width of map area, the left and right border will be blocked by wall.
         /// </summary>
