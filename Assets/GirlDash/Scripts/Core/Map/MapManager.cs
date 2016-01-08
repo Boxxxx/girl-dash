@@ -33,14 +33,14 @@ namespace GirlDash.Map {
     [RequireComponent(typeof(MapFactory))]
     public class MapManager : MonoBehaviour {
         [Tooltip("Minimum of number of blocks that is cached.")]
-        public int minBlocksToCacheup = 5;
+        public int minBlocksToCacheup = 3;
         public Transform terrainFolder;
 
         /// <summary>
         /// What's really needed here is a dequeue, but we have only a couple of blocks (less than 10) in this group,
         /// so we just use a list to simulate it.
         /// </summary>
-        private List<MapBlock> blocks_ = new List<MapBlock>();
+        private List<MapBlock> map_blocks = new List<MapBlock>();
 
         public MapData mapData { get; private set; }
 
@@ -66,6 +66,7 @@ namespace GirlDash.Map {
                 "deadArea", terrainFolder,
                 new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.width, MapConstants.kWallThickness),
                 false /* is_trigger */);
+            dead_area.gameObject.layer = LayerMask.NameToLayer("Ground");
         }
         private void InitialBuild() {
             InitBoundingColliders();
@@ -82,10 +83,10 @@ namespace GirlDash.Map {
             next_block_index_ = 0;
 
             // Clear all blocks
-            for (int i = 0; i < blocks_.Count; i++) {
-                blocks_[i].RecycleSelf();
+            for (int i = 0; i < map_blocks.Count; i++) {
+                map_blocks[i].RecycleSelf();
             }
-            blocks_.Clear();
+            map_blocks.Clear();
 
             // Clear all folders
             ClearFolder(terrainFolder);
@@ -95,7 +96,10 @@ namespace GirlDash.Map {
         }
 
         public void UpdateProgress(float new_progress) {
-            progress = Mathf.Max(progress, new_progress);
+            if (new_progress > progress) {
+                progress = new_progress;
+                RefreshBlocks();
+            }
         }
 
         private void RefreshBlocks() {
@@ -103,12 +107,13 @@ namespace GirlDash.Map {
             MapValue right_bound = MapValue.UpperBound(progress + (float)mapData.sightRange);
 
             // Step1: Try to recycle the out-of-sight block in left side.
-            while (blocks_.Count > 0) {
-                var block = blocks_[0];
-                if (block.bound.x < left_bound) {
+            while (map_blocks.Count > 0) {
+                var block = map_blocks[0];
+                if (block.bound.max < left_bound) {
+                    Debug.Log(string.Format("Going to recycle the blocks at [{0}, {1}], the progress now is {2}", block.bound.min, block.bound.max, progress));
                     // If this leftmost block is out of sight, recycle it.
                     block.RecycleSelf();
-                    blocks_.RemoveAt(0);
+                    map_blocks.RemoveAt(0);
                 } else {
                     // Otherwise, all remains are in sight.
                     break;
@@ -116,7 +121,7 @@ namespace GirlDash.Map {
             }
 
             // Step2: Cache up to 'minBlocksToCacheup'
-            while (blocks_.Count < minBlocksToCacheup) {
+            while (map_blocks.Count < minBlocksToCacheup) {
                 if (!CacheupNextBlock()) {
                     // If there is no next block, just return
                     return;
@@ -124,8 +129,8 @@ namespace GirlDash.Map {
             }
 
             // Step3: Try to add the right block that is going to in sight.
-            while (blocks_.Count > 0) {
-                var block = blocks_[blocks_.Count - 1];
+            while (map_blocks.Count > 0) {
+                var block = map_blocks[map_blocks.Count - 1];
                 if (block.bound.max < right_bound) {
                     // If the rightmost block is not enough to cover all sight range, add a new one.
                     if (!CacheupNextBlock()) {
@@ -143,7 +148,7 @@ namespace GirlDash.Map {
             if (next_block_index_ >= mapData.blocks.Count) {
                 return false;
             }
-            blocks_.Add(new MapBlock(mapData.blocks[next_block_index_++], terrainFolder, map_factory));
+            map_blocks.Add(new MapBlock(mapData.blocks[next_block_index_++], terrainFolder, map_factory));
             return true;
         }
 
@@ -164,11 +169,13 @@ namespace GirlDash.Map {
         /// For test only
         /// </summary>
         private MapData CreateMockMapData() {
-            SimpleMapBuilder builder = new SimpleMapBuilder(new SimpleMapBuilder.Options());
+            var options = new SimpleMapBuilder.Options();
+            options.expectedBlockWidth = 15;
+            SimpleMapBuilder builder = new SimpleMapBuilder(options);
 
-            int num_ground = 10;
+            int num_ground = 100;
             MapVector random_ground_width_range = new MapVector(3, 10);
-            MapVector random_ground_offset_range = new MapVector(0, 3);
+            MapVector random_ground_offset_range = new MapVector(0, 4);
 
             builder.NewGround(
                 0, Random.Range(Mathf.Max(7, random_ground_width_range.x), random_ground_width_range.y));

@@ -77,9 +77,8 @@ namespace GirlDash.Map {
             int x_max = grounds[0].region.xMax;
 
             for (int i = 1; i < grounds.Count; i++) {
-                var terrain = grounds[i];
                 x_min = Mathf.Min(x_min, grounds[i].region.xMin);
-                x_max = Mathf.Min(x_max, grounds[i].region.xMax);
+                x_max = Mathf.Max(x_max, grounds[i].region.xMax);
             }
             block_data.bound = new MapVector(x_min, x_max);
 
@@ -173,6 +172,9 @@ namespace GirlDash.Map {
                 }
                 last_block.terrains = last_terrains.ToArray();
             }
+
+            map_data.width = map_data.blocks[map_data.blocks.Count - 1].bound.max - map_data.blocks[0].bound.min;
+            Debug.Log(string.Format("Map data generated, total blocks: {0}, total width: {1}", map_data.blocks.Count, map_data.width));
         }
 
         public MapData Build() {
@@ -180,8 +182,7 @@ namespace GirlDash.Map {
             map_data.deadHeight = Mathf.Min(-1, options_.deadHeight);
 
             SplitIntoBlocks(options_.expectedBlockWidth, map_data);
-
-            // TODO(hyf042): add split here.
+            
             return map_data;
         }
     }

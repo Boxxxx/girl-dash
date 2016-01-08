@@ -63,7 +63,8 @@ namespace GirlDash {
                     }
                 }
                 last_horiz_axis_ = horiz_axis;
-                controller_.Move(horiz_axis);
+
+                //controller_.Move(horiz_axis);
             }
         }
     }

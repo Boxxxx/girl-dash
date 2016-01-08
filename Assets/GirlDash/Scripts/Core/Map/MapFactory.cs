@@ -6,10 +6,9 @@ namespace GirlDash.Map {
         public GroundComponent ground;
 
         public TerrainComponent CreateTerrain(TerrainData data) {
-            TerrainComponent comp;
             switch (data.terrainType) {
                 case TerrainData.TerrainType.Ground:
-                    return comp = PoolManager.Allocate(ground);
+                    return PoolManager.Allocate(ground);
                 default:
                     throw new System.NotImplementedException("Not implemented terrain type: " + data.terrainType);
             }

@@ -75,6 +75,17 @@ namespace GirlDash.Map {
         public static MapValue UpperBound(float value) {
             return Mathf.FloorToInt(value / MapResolution.kMapToUnityResolutionFactor);
         }
+
+        public static MapValue RoundValue(float value) {
+            return Mathf.RoundToInt(value / MapResolution.kMapToUnityResolutionFactor);
+        }
+
+        /// <summary>
+        /// Convert unity value to real map value (float)
+        /// </summary>
+        public static float RealValue(float value) {
+            return value / MapResolution.kMapToUnityResolutionFactor;
+        }
     }
 
     /// <summary>
