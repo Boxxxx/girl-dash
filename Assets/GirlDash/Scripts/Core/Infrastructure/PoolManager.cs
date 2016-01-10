@@ -158,8 +158,8 @@ namespace GirlDash {
         public static GameObject Allocate(GameObject prefab) {
             return Allocate(prefab, Vector3.zero, Quaternion.identity);
         }
-        public static T Allocate<T>(GameObject prefab, Vector3 position, Quaternion rotation) where T : Component {
-            var game_object = Allocate(prefab, position, rotation);
+        public static T Allocate<T>(T prefab, Vector3 position, Quaternion rotation) where T : Component {
+            var game_object = Allocate(prefab.gameObject, position, rotation);
             if (game_object != null) {
                 return game_object.GetComponent<T>();
             }
@@ -167,7 +167,7 @@ namespace GirlDash {
                 return null;
             }
         }
-        public static T Allocate<T>(GameObject prefab) where T : Component {
+        public static T Allocate<T>(T prefab) where T : Component {
             return Allocate<T>(prefab, Vector3.zero, Quaternion.identity);
         }
 

@@ -17,14 +17,14 @@ namespace GirlDash {
         void Update() {
             {
                 // Fire logic
-                if (Input.GetButtonDown("Fire1")) {
+                if (Input.GetButtonDown(InputEvents.kFire)) {
                     controller_.Fire();
                 }
             }
 
             {
                 // Jump logic
-                if (Input.GetButtonDown("Jump")) {
+                if (Input.GetButtonDown(InputEvents.kJump)) {
                     controller_.Jump();
                 }
             }
@@ -38,7 +38,7 @@ namespace GirlDash {
                 // And even more interesting is, the next frame this character will turn around, and we also have a non-zero horiz_axis.
                 // Wow, It solves the special case perfectly!
 
-                float horiz_axis = Input.GetAxis("Horizontal");
+                float horiz_axis = Input.GetAxis(InputEvents.kHorizontal);
                 int horiz_direction = MathUtil.ToIntSign(horiz_axis);
 
                 if (last_horiz_axis_ * horiz_direction < 0) {
@@ -63,7 +63,8 @@ namespace GirlDash {
                     }
                 }
                 last_horiz_axis_ = horiz_axis;
-                controller_.Move(horiz_axis);
+
+                //controller_.Move(horiz_axis);
             }
         }
     }
