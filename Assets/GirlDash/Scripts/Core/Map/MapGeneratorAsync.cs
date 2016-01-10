@@ -15,7 +15,7 @@ namespace GirlDash.Map {
         /// Inform the information of passed blocks of current game,
         /// it's used to let the generator consider when to do calculation and cache more blocks.
         /// </summary>
-        public virtual BlockData[] OnBlockPassed(int num_passed_blocks, int num_remain_blocks, int remain_width);
+        public abstract BlockData[] OnBlockPassed(int num_passed_blocks, int num_remain_blocks, int remain_width);
 
         /// <summary>
         /// Pull out next batch of blocks
