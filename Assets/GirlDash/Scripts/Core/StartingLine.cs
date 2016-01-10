@@ -19,5 +19,14 @@ namespace GirlDash {
         public MapVector GetMapPosition(Transform transform) {
             return GetMapPosition(transform.position);
         }
+
+        // Convert the mapVector to global unity 2d position.
+        public Vector2 GetGlobalPosition(MapVector vector) {
+            return (Vector2)transform.position + (Vector2)vector;
+        }
+
+        public float ProgressToGlobalX(float progress) {
+            return transform.position.x + progress;
+        }
     }
 }

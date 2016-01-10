@@ -12,6 +12,10 @@ namespace GirlDash {
             public static readonly string Fire = "fire";
             public static readonly string IsMove = "is_move";
         }
+
+        public Transform groundChecker;
+        public Transform muzzle;
+
         public float moveSpeed = 5f;
         public float jumpForce = 1000f;
         public Vector2 firePositionFluctuation = new Vector2(0, 0.1f);
@@ -23,30 +27,48 @@ namespace GirlDash {
         }
 
         public bool isFaceRight {
-            get;
-            private set;
+            get {
+                return is_face_right_;
+            }
+            private set {
+                if (is_face_right_ != value) {
+                    is_face_right_ = value;
+
+                    Vector3 local_scale = transform.localScale;
+                    local_scale.x = is_face_right_ ? 1 : -1;
+                    transform.localScale = local_scale;
+                }
+            }
+        }
+
+        public bool isAlive {
+            get; private set;
         }
 
         // Cached variables
         private int ground_layermask_;
-        private Transform ground_checker_;
-        private Transform muzzle_;
         private Animator animator_;
         private Rigidbody2D rigidbody2D_;
 
+        private bool is_face_right_ = false;
         private bool cached_jump_trigger_ = false;
         private float last_y_speed_ = 0f;
         private float move_axis_ = 0f;
 
+        #region Public Methods
         public void Fire() {
-            var bullet = PoolManager.Allocate<Bullet>("RifleBullet");
+            if (!isAlive) {
+                return;
+            }
+
+            var bullet = PoolManager.Allocate<Bullet>(ResourceNames.kRifleBullet);
             if (bullet == null) {
                 return;
             }
-            bullet.transform.position = muzzle_.position + RandomVector(firePositionFluctuation);
+            bullet.transform.position = muzzle.position + RandomVector(firePositionFluctuation);
 
             Vector2 direction = isFaceRight ? Vector2.right : Vector2.left;
-            if (bullet.transform.position.y >= muzzle_.position.y) {
+            if (bullet.transform.position.y >= muzzle.position.y) {
                 direction = Quaternion.Euler(0, 0, Random.Range(0, fireDirectionFluctuation)) * direction;
             } else {
                 direction = Quaternion.Euler(0, 0, Random.Range(-fireDirectionFluctuation, 0)) * direction;
@@ -58,25 +80,47 @@ namespace GirlDash {
         }
 
         public void Jump() {
+            if (!isAlive) {
+                return;
+            }
+
             if (isGrounded) {
                 cached_jump_trigger_ = true;
             }
         }
 
         public void Move(float axis) {
+            if (!isAlive) {
+                return;
+            }
+
             move_axis_ = axis;
         }
 
+        public void Die() {
+            if (!isAlive) {
+                return;
+            }
+
+            isAlive = false;
+            animator_.SetTrigger(AnimatorParameters.Die);
+        }
+
+        public void Reset() {
+            isAlive = true;
+
+            isGrounded = false;
+            isFaceRight = true;
+        }
+        #endregion
+
+        #region Private Methods
         private bool GroundedTest() {
-            return Physics2D.Linecast(transform.position, ground_checker_.position, ground_layermask_);
+            return Physics2D.Linecast(transform.position, groundChecker.position, ground_layermask_);
         }
 
         private void Flip() {
             isFaceRight = !isFaceRight;
-
-            Vector3 local_scale = transform.localScale;
-            local_scale.x *= -1;
-            transform.localScale = local_scale;
         }
 
         private void GroundedUpdate() {
@@ -122,20 +166,19 @@ namespace GirlDash {
         private Vector3 RandomVector(Vector2 fluctuation) {
             return new Vector3(Random.Range(-firePositionFluctuation.x, firePositionFluctuation.x), Random.Range(-firePositionFluctuation.y, firePositionFluctuation.y), 0);
         }
+        #endregion
 
+        #region Unity Functions
         void Awake() {
-            ground_checker_ = transform.Find("groundChecker");
-            muzzle_ = transform.Find("muzzle");
-            ground_layermask_ = 1 << LayerMask.NameToLayer("Ground");
+            ground_layermask_ = 1 << LayerMask.NameToLayer(Consts.kGroundLayer);
             animator_ = GetComponent<Animator>();
             rigidbody2D_ = GetComponent<Rigidbody2D>();
 
-            isGrounded = false;
-            isFaceRight = true;
+            Reset();
         }
 
         void Update() {
-            if (Input.GetButtonDown("Jump")) {
+            if (Input.GetButtonDown(InputEvents.kJump)) {
                 Jump();
             }
         }
@@ -146,5 +189,6 @@ namespace GirlDash {
             JumpUpdate();
             FallUpdate();
         }
+        #endregion
     }
 }

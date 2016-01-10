@@ -20,7 +20,7 @@ namespace GirlDash.Map {
                     
                     sprites_.Add(sprite);
                     sprite.transform.parent = graphics;
-                    sprite.transform.localPosition = (Vector2)(new MapVector(i, j));
+                    sprite.transform.localPosition = (Vector2)(new MapVector(i, -j));
                 }
             }
         }
@@ -28,7 +28,7 @@ namespace GirlDash.Map {
         protected override void Init() {
             // Sets to topleft corner
             Rect rect = (Rect)data.region;
-            transform.localPosition = new Vector2(rect.xMin, rect.yMin);
+            transform.localPosition = new Vector2(rect.xMin, rect.yMax);
         }
         protected override void Cleanup() {
             base.Cleanup();

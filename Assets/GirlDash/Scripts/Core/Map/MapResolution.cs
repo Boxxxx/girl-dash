@@ -8,6 +8,8 @@ namespace GirlDash.Map {
     /// Represents a vector in map resolution.
     /// </summary>
     public struct MapVector {
+        public static readonly MapVector zero = new MapVector(0, 0);
+
         public int x { get; private set; }
         public int y { get; private set; }
         public int min { get { return x; } }

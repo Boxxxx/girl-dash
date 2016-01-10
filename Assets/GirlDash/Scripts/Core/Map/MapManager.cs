@@ -53,20 +53,20 @@ namespace GirlDash.Map {
 
         private void InitBoundingColliders() {
             MapUtils.CreateBoxCollider(
-                "wallLeft", terrainFolder,
+                "WallLeft", terrainFolder,
                 new MapRect(-MapConstants.kWallThickness, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
             MapUtils.CreateBoxCollider(
-                "wallRight", terrainFolder,
+                "WallRight", terrainFolder,
                 new MapRect(mapData.width, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
         }
         private void InitDeadArea() {
             dead_area = MapUtils.CreateBoxCollider(
-                "deadArea", terrainFolder,
+                "DeadArea", terrainFolder,
                 new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.width, MapConstants.kWallThickness),
                 false /* is_trigger */);
-            dead_area.gameObject.layer = LayerMask.NameToLayer("Ground");
+            dead_area.gameObject.layer = LayerMask.NameToLayer(Consts.kGroundLayer);
         }
         private void InitialBuild() {
             InitBoundingColliders();
@@ -112,7 +112,9 @@ namespace GirlDash.Map {
             while (map_blocks.Count > 0) {
                 var block = map_blocks[0];
                 if (block.bound.max < left_bound) {
-                    Debug.Log(string.Format("Going to recycle the blocks at [{0}, {1}], the progress now is {2}", block.bound.min, block.bound.max, progress));
+                    Debug.Log(
+                        string.Format("[MapManger] Going to recycle the blocks at [{0}, {1}], the progress now is {2}",
+                        block.bound.min, block.bound.max, progress));
                     // If this leftmost block is out of sight, recycle it.
                     block.RecycleSelf();
                     map_blocks.RemoveAt(0);
@@ -182,12 +184,16 @@ namespace GirlDash.Map {
             builder.NewGround(
                 0, Random.Range(Mathf.Max(7, random_ground_width_range.x), random_ground_width_range.y));
             for (int i = 1; i < num_ground; i++) {
-                builder.NewGround(
+                var ground_data = builder.NewGround(
                     Random.Range(random_ground_offset_range.x, random_ground_offset_range.y),
                     Random.Range(random_ground_width_range.x, random_ground_width_range.y));
+                if (Random.value < 0.25f) {
+                    // 25% possibility to add a obstacle
+                    builder.AddObstacle(ground_data.region.width, Random.Range(1, 2), 0, 0);
+                }
             }
 
-            return builder.Build();
+            return builder.BuildMap();
         }
     }
 }
