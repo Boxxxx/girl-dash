@@ -35,7 +35,6 @@ namespace GirlDash.Map {
     public class MapManager : MonoBehaviour, IGameComponent {
         [Tooltip("Minimum of number of blocks that is cached.")]
         public int minBlocksToCacheup = 3;
-        public bool is_infinity = true;
         public Transform terrainFolder;
 
         /// <summary>
@@ -54,7 +53,7 @@ namespace GirlDash.Map {
         private BoxCollider2D right_wall_;
 
         private MapFactory map_factory_;
-        private MapGeneratorAsync map_generator_;
+        private IMapGenerator map_generator_;
         private int next_block_index_;
 
         private void InitBoundingColliders() {
@@ -70,7 +69,7 @@ namespace GirlDash.Map {
         private void InitDeadArea() {
             dead_area_ = MapUtils.CreateBoxCollider(
                 "DeadArea", terrainFolder,
-                new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, MapConstants.kInfinity, MapConstants.kWallThickness),
+                new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.rightBorder, MapConstants.kWallThickness),
                 false /* is_trigger */);
             dead_area_.gameObject.layer = LayerMask.NameToLayer(Consts.kGroundLayer);
         }
@@ -108,12 +107,12 @@ namespace GirlDash.Map {
             }
         }
 
-        public IEnumerator Load(MapGeneratorAsync map_generator) {
+        public IEnumerator Load(IMapGenerator map_generator) {
             map_factory_ = GetComponent<MapFactory>();
-            map_generator_ = map_generator;
-            map_generator_.Start();
-            Reset(map_generator.InitMapData());
-            yield return null;
+
+            yield return StartCoroutine(map_generator.Generate());
+
+            Reset(map_generator.GetMap());
         }
 
         public void GameStart() { }
@@ -168,9 +167,7 @@ namespace GirlDash.Map {
 
         private bool CacheupNextBlock() {
             if (next_block_index_ >= mapData.blocks.Count) {
-                if (!is_infinity || !ExtendMap()) {
-                    return false;
-                }
+                return false;
             }
             map_blocks.Add(new MapBlock(mapData.blocks[next_block_index_++], terrainFolder, map_factory_));
             return true;
@@ -181,33 +178,6 @@ namespace GirlDash.Map {
                 var child = folder.GetChild(i);
                 GameObject.Destroy(child);
             }
-        }
-
-        private bool ExtendMap() {
-            var new_blocks = map_generator_.PullNextBatch();
-
-            if (new_blocks.Count == 0) {
-                Debug.LogError("[MapManager] can not extend map, unexpected stop.");
-                return false;
-            }
-
-            mapData.blocks.AddRange(new_blocks);
-            UpdateWalls();
-            return true;
-        }
-
-        private void UpdateWalls() {
-            MapUtils.SetBoxCollider(
-                left_wall_,
-                new MapRect(-MapConstants.kWallThickness + mapData.leftBorder, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1));
-            MapUtils.SetBoxCollider(
-                right_wall_,
-                new MapRect(mapData.rightBorder, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1));
-        }
-
-        void OnDestroy() {
-            // Waits for 0.5s to stop
-            map_generator_.Stop(System.TimeSpan.FromSeconds(0.5));
         }
     }
 }

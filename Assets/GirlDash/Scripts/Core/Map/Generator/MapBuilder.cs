@@ -3,21 +3,12 @@ using System.Collections.Generic;
 
 namespace GirlDash.Map {
     /// <summary>
-    /// An instance to builder a whole map or a part of it.
-    /// Notice a complete map data is actually a simple wrap of a bunch of blocks.
-    /// </summary>
-    public interface IMapBuilder {
-        MapData InitMapData();
-        List<BlockData> BuildBlocks();
-    }
-    
-    /// <summary>
     /// Simple map builder, the basic idea is that all terrian components are divided into two layers:
     /// - the first layer is grounds, thay are all the same height and do not overlap with each other.
     /// - the second layer is other widget componets which is placed related to grounds.
     /// - Of course, there is also enemy units.
     /// </summary>
-    public class SimpleMapBuilder : IMapBuilder {
+    public class SimpleMapBuilder {
         public class BlockSplitter {
             private List<TerrainData> grounds_;  // not owned
             private List<EnemyData> enemies_;  // not owned
@@ -165,7 +156,6 @@ namespace GirlDash.Map {
         }
 
         private Options options_;
-        private int initial_offset_x_ = 0;
         private List<TerrainData> grounds_ = new List<TerrainData>();
         private List<EnemyData> enemies_ = new List<EnemyData>();
         private List<TerrainData> widgets_ = new List<TerrainData>();
@@ -185,7 +175,7 @@ namespace GirlDash.Map {
         private MapVector CurrentGroundOffset {
             get {
                 if (current_ground_ == null) {
-                    return new MapVector(initial_offset_x_, 0);
+                    return MapVector.zero;
                 } else {
                     return current_ground_.region.topLeft;
                 }
@@ -196,12 +186,11 @@ namespace GirlDash.Map {
             options_ = options;
         }
 
-        public void Reset(int initial_offset) {
+        public void Reset() {
             grounds_.Clear();
             enemies_.Clear();
             widgets_.Clear();
             current_ground_ = null;
-            initial_offset_x_ = initial_offset;
         }
 
         public TerrainData NewGround(int offset, int width) {

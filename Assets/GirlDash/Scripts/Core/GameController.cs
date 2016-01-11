@@ -72,13 +72,10 @@ namespace GirlDash {
 
         IEnumerator Start() {
             // Preload pooling objects.
-            yield return PoolManager.Instance.Load();
+            yield return StartCoroutine(PoolManager.Instance.Load());
 
             // Inits the map data.
-            var options = new SimpleMapBuilder.Options();
-            options.expectedBlockWidth = 15;
-            var map_generator = new SimpleMapGenerator(new SimpleMapBuilder(options));
-            yield return mapManager.Load(map_generator);
+            yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator()));
 
             Restart();
         }
