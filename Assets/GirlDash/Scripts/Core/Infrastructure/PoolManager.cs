@@ -1,16 +1,18 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
 
 namespace GirlDash {
-    public class PoolManager : SingletonObject<PoolManager> {
+    public class PoolManager : SingletonObject<PoolManager>, IGameComponent {
         [Tooltip("If set to false, then the allocate & deallocate will be deliver to unity directly.")]
         public bool usePoolManager = true;
         public List<ObjectPool.Options> poolOptions = new List<ObjectPool.Options>();
+        public bool loadWhenAwake = false;
         public bool showDebugLog = false;
         public bool dontDestroyOnLoad = false;
         public bool autoAddMissingPrefabPool = true;
 
+        private bool is_loaded_ = false;
         private Dictionary<string, ObjectPool> pools_ = new Dictionary<string, ObjectPool>();
         private Dictionary<GameObject, ObjectPool> instance_to_pool_map = new Dictionary<GameObject, ObjectPool>();
 
@@ -107,10 +109,26 @@ namespace GirlDash {
                 DontDestroyOnLoad(gameObject);
             }
 
-            for (int i = 0; i < poolOptions.Count; i++) {
-                NewPool(poolOptions[i]);
+            if (loadWhenAwake) {
+                is_loaded_ = true;
+                for (int i = 0; i < poolOptions.Count; i++) {
+                    NewPool(poolOptions[i]);
+                }
             }
         }
+
+        public IEnumerator Load() {
+            if (!is_loaded_) {
+                is_loaded_ = true;
+                for (int i = 0; i < poolOptions.Count; i++) {
+                    NewPool(poolOptions[i]);
+                }
+            }
+            yield return null;
+        }
+
+        public void GameStart() {}
+        public void GameOver() {}
 
         /// <summary>
         // Since all active objects will be destroyed by Unity when the scene is destroyed.

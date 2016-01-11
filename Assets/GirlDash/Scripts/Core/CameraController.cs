@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
-using GirlDash.Map;
+using System.Collections;
 
 namespace GirlDash {
-    public class CameraController : MonoBehaviour {
+    public class CameraController : MonoBehaviour, IGameComponent {
         public Transform target;
+
+        public void GameStart() { }
+        public void GameOver() { }
 
         /// <summary>
         /// Tracks targets, the current implementation is to track the exact x axis. 

@@ -7,11 +7,9 @@ namespace GirlDash.Map {
     /// Notice a complete map data is actually a simple wrap of a bunch of blocks.
     /// </summary>
     public interface IMapBuilder {
-        MapData BuildMap();
+        MapData InitMapData();
         List<BlockData> BuildBlocks();
     }
-
-    
     
     /// <summary>
     /// Simple map builder, the basic idea is that all terrian components are divided into two layers:
@@ -40,8 +38,8 @@ namespace GirlDash.Map {
             /// Notice the 'grounds' will be cleared after this function.
             /// </summary>
             private static BlockData NextBlock(List<TerrainData> grounds,
-                                                 List<EnemyData> sorted_enemies, ref int enemy_index,
-                                                 List<TerrainData> sorted_widgets, ref int widget_index) {
+                                               List<EnemyData> sorted_enemies, ref int enemy_index,
+                                               List<TerrainData> sorted_widgets, ref int widget_index) {
                 if (grounds.Count == 0) {
                     Debug.LogError("BlockData must have at least one terrain.");
                     return null;
@@ -167,6 +165,7 @@ namespace GirlDash.Map {
         }
 
         private Options options_;
+        private int initial_offset_x_ = 0;
         private List<TerrainData> grounds_ = new List<TerrainData>();
         private List<EnemyData> enemies_ = new List<EnemyData>();
         private List<TerrainData> widgets_ = new List<TerrainData>();
@@ -181,12 +180,12 @@ namespace GirlDash.Map {
 
         /// <summary>
         /// Current ground offset, all widgets components should be placed related to the topleft corner of ground.
-        /// If there is not  a ground at all, just return (0, 0).
+        /// If there is not  a ground at all, just return 'initial_offset_'.
         /// </summary>
         private MapVector CurrentGroundOffset {
             get {
                 if (current_ground_ == null) {
-                    return MapVector.zero;
+                    return new MapVector(initial_offset_x_, 0);
                 } else {
                     return current_ground_.region.topLeft;
                 }
@@ -197,11 +196,12 @@ namespace GirlDash.Map {
             options_ = options;
         }
 
-        public void Reset() {
+        public void Reset(int initial_offset) {
             grounds_.Clear();
             enemies_.Clear();
             widgets_.Clear();
             current_ground_ = null;
+            initial_offset_x_ = initial_offset;
         }
 
         public TerrainData NewGround(int offset, int width) {
@@ -233,17 +233,10 @@ namespace GirlDash.Map {
             return terrian_data;
         }
 
-        public MapData BuildMap() {
+        public MapData InitMapData() {
             MapData map_data = new MapData();
             map_data.deadHeight = Mathf.Min(-1, options_.deadHeight);
             map_data.sightRange = new MapVector(MapValue.LowerBound(-11.36f), MapValue.UpperBound(11.36f));
-
-            map_data.blocks = block_splitter_.Split(options_.expectedBlockWidth, grounds_, enemies_, widgets_);
-            map_data.width = map_data.blocks[map_data.blocks.Count - 1].bound.max - map_data.blocks[0].bound.min;
-            Debug.Log(string.Format("[MapBuilder] Map data generated, total blocks: {0}, total width: {1}", map_data.blocks.Count, map_data.width));
-
-            Reset();
-
             return map_data;
         }
 
@@ -251,8 +244,6 @@ namespace GirlDash.Map {
             var blocks = block_splitter_.Split(options_.expectedBlockWidth, grounds_, enemies_, widgets_);
             int width = blocks.Count > 0 ? blocks[blocks.Count - 1].bound.max - blocks[0].bound.min : 0;
             Debug.Log(string.Format("[MapBuilder] Blocks data generated, total blocks: {0}, total width: {1}", blocks.Count, width));
-
-            Reset();
 
             return blocks;
         }

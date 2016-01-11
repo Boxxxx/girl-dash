@@ -1,5 +1,6 @@
 ﻿using GirlDash.Map;
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GirlDash {
@@ -29,6 +30,8 @@ namespace GirlDash {
         public float progress;
         public StateEnum state = StateEnum.kNew;
 
+        private List<IGameComponent> components_ = new List<IGameComponent>();
+
         public float deadProgress {
             get; private set;
         }
@@ -42,23 +45,45 @@ namespace GirlDash {
             progress = startingLine.GetOffset(playerController.transform).x;
             deadProgress = progress - maximumDeadDistance;
 
+            for (int i = 0; i < components_.Count; i++) {
+                components_[i].GameStart();
+            }
+
             state = StateEnum.kPlaying;
         }
 
-        private void TouchOfDeath() {
+        private void PlayerDie() {
             // Stops the player.
             playerController.Move(0);
             playerController.Die();
 
             state = StateEnum.kDead;
+
+            for (int i = 0; i < components_.Count; i++) {
+                components_[i].GameOver();
+            }
         }
 
-        void Start() {
+        void Awake() {
+            components_.Add(PoolManager.Instance);
+            components_.Add(mapManager);
+            components_.Add(cameraController);
+        }
+
+        IEnumerator Start() {
+            // Preload pooling objects.
+            yield return PoolManager.Instance.Load();
+
+            // Inits the map data.
+            var options = new SimpleMapBuilder.Options();
+            options.expectedBlockWidth = 15;
+            var map_generator = new SimpleMapGenerator(new SimpleMapBuilder(options));
+            yield return mapManager.Load(map_generator);
+
             Restart();
         }
 
         void FixedUpdate() {
-
             if (isPlaying) {
                 progress = startingLine.GetOffset(playerController.transform).x;
 
@@ -78,7 +103,7 @@ namespace GirlDash {
                 }
 
                 if (deadProgress >= progress) {
-                    TouchOfDeath();
+                    PlayerDie();
                 }
             }
 

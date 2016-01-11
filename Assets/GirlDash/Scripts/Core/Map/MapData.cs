@@ -63,10 +63,6 @@ namespace GirlDash.Map {
         /// </summary>
         public MapVector sightRange;
         /// <summary>
-        /// width of map area, the left and right border will be blocked by wall.
-        /// </summary>
-        public MapValue width;
-        /// <summary>
         /// deadHeight of map area, there will be a deadArea at this height
         /// </summary>
         public MapValue deadHeight;
@@ -78,5 +74,17 @@ namespace GirlDash.Map {
         /// Therefore, we can have unlimited map blocks.
         /// </summary>
         public List<BlockData> blocks = new List<BlockData>();
+
+        public MapValue rightBorder {
+            get { return blocks.Count > 0 ? blocks[blocks.Count - 1].bound.max : 0; }
+        }
+
+        public MapValue leftBorder {
+            get { return blocks.Count < 0 ? blocks[0].bound.min : 0; }
+        }
+
+        public MapValue width {
+            get { return blocks.Count > 0 ? blocks[blocks.Count - 1].bound.max - blocks[0].bound.min : 0; }
+        }
     }
 }
