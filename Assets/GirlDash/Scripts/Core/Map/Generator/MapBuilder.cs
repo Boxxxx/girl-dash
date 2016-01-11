@@ -170,7 +170,7 @@ namespace GirlDash.Map {
 
         /// <summary>
         /// Current ground offset, all widgets components should be placed related to the topleft corner of ground.
-        /// If there is not  a ground at all, just return 'initial_offset_'.
+        /// If there is not  a ground at all, just return (0, 0).
         /// </summary>
         private MapVector CurrentGroundOffset {
             get {

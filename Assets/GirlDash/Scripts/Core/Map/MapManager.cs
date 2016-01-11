@@ -59,17 +59,17 @@ namespace GirlDash.Map {
         private void InitBoundingColliders() {
             left_wall_ = MapUtils.CreateBoxCollider(
                 "WallLeft", terrainFolder,
-                new MapRect(-MapConstants.kWallThickness + mapData.leftBorder, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
+                new MapRect(-MapConstants.kWallThickness + mapData.leftmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
             right_wall_ = MapUtils.CreateBoxCollider(
                 "WallRight", terrainFolder,
-                new MapRect(mapData.rightBorder, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
+                new MapRect(mapData.rightmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
         }
         private void InitDeadArea() {
             dead_area_ = MapUtils.CreateBoxCollider(
                 "DeadArea", terrainFolder,
-                new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.rightBorder, MapConstants.kWallThickness),
+                new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.rightmost, MapConstants.kWallThickness),
                 false /* is_trigger */);
             dead_area_.gameObject.layer = LayerMask.NameToLayer(Consts.kGroundLayer);
         }

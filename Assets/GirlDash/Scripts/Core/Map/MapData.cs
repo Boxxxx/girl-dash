@@ -75,11 +75,11 @@ namespace GirlDash.Map {
         /// </summary>
         public List<BlockData> blocks = new List<BlockData>();
 
-        public MapValue rightBorder {
+        public MapValue rightmost {
             get { return blocks.Count > 0 ? blocks[blocks.Count - 1].bound.max : 0; }
         }
 
-        public MapValue leftBorder {
+        public MapValue leftmost {
             get { return blocks.Count < 0 ? blocks[0].bound.min : 0; }
         }
 
