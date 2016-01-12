@@ -16,8 +16,6 @@ namespace GirlDash {
         public Transform groundChecker;
         public Transform muzzle;
 
-        public float moveSpeed = 5f;
-        public float jumpForce = 1000f;
         public Vector2 firePositionFluctuation = new Vector2(0, 0.1f);
         public float fireDirectionFluctuation = 5f;
 
@@ -45,10 +43,33 @@ namespace GirlDash {
             get; private set;
         }
 
+        public CharacterData characterData {
+            get {
+                return character_data_;
+            }
+        }
+
+        public float moveSpeed {
+            get { return character_data_.moveSpeed; }
+        }
+
+        public float jumpForce {
+            get { return character_data_.jumpForce; }
+        }
+
+        public int atk {
+            get { return character_data_.atk; }
+        }
+
+        public int hp {
+            get { return character_data_.hp; }
+        }
+
         // Cached variables
         private int ground_layermask_;
         private Animator animator_;
         private Rigidbody2D rigidbody2D_;
+        private CharacterData character_data_ = new CharacterData();
 
         private bool is_face_right_ = false;
         private bool cached_jump_trigger_ = false;
@@ -106,11 +127,13 @@ namespace GirlDash {
             animator_.SetTrigger(AnimatorParameters.Die);
         }
 
-        public void Reset() {
+        public void Reset(CharacterData character_data) {
             isAlive = true;
 
             isGrounded = false;
             isFaceRight = true;
+
+            character_data_ = character_data;
         }
         #endregion
 
@@ -173,8 +196,6 @@ namespace GirlDash {
             ground_layermask_ = 1 << LayerMask.NameToLayer(Consts.kGroundLayer);
             animator_ = GetComponent<Animator>();
             rigidbody2D_ = GetComponent<Rigidbody2D>();
-
-            Reset();
         }
 
         void Update() {
