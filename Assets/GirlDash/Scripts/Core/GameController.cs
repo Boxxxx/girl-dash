@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace GirlDash {
-    public class GameController : MonoBehaviour {
+    public class GameController : SingletonObject<GameController> {
         public enum StateEnum {
             kNew,
             kPlaying,
@@ -22,7 +22,7 @@ namespace GirlDash {
         public CameraController cameraController;
         public MapManager mapManager;
 
-        public bool move = true;
+        public bool debugMode = false;
         public bool showDeadline = true;
         public float maximumDeadDistance = 5.68f;
 
@@ -51,15 +51,16 @@ namespace GirlDash {
             state = StateEnum.kPlaying;
         }
 
-        private void PlayerDie() {
-            // Stops the player.
-            playerController.Move(0);
-            playerController.Die();
+        public void OnPlayerDie() {
+            if (isPlaying) {
+                // Stops the player.
+                playerController.Die();
 
-            state = StateEnum.kDead;
+                state = StateEnum.kDead;
 
-            for (int i = 0; i < components_.Count; i++) {
-                components_[i].GameOver();
+                for (int i = 0; i < components_.Count; i++) {
+                    components_[i].GameOver();
+                }
             }
         }
 
@@ -86,23 +87,19 @@ namespace GirlDash {
             if (isPlaying) {
                 progress = startingLine.GetOffset(playerController.transform).x;
 
-                // Updates dead progress
-                // TODO(hyf042): find a better dead speed, now it's set to the character's speed.
-                deadProgress += Time.deltaTime * playerController.moveSpeed * 0.8f;
-                deadProgress = Mathf.Max(deadProgress, progress - maximumDeadDistance);
+                if (!debugMode) {
+                    // Updates dead progress
+                    // TODO(hyf042): find a better dead speed, now it's set to the character's speed.
+                    deadProgress += Time.deltaTime * playerController.moveSpeed * 0.8f;
+                    deadProgress = Mathf.Max(deadProgress, progress - maximumDeadDistance);
 
-                mapManager.UpdateProgress(progress);
+                    mapManager.UpdateProgress(progress);
 
-                if (move) {
-                    // Force to move right.
                     playerController.Move(1);
-                }
-                else {
-                    playerController.Move(0);
                 }
 
                 if (deadProgress >= progress) {
-                    PlayerDie();
+                    OnPlayerDie();
                 }
             }
 

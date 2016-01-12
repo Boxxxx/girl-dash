@@ -26,7 +26,7 @@ namespace GirlDash.Map {
             MapVector random_ground_offset_range = new MapVector(0, 4);
 
             builder_.NewGround(
-                0, random_.Next(Mathf.Max(7, random_ground_width_range.x), random_ground_width_range.y));
+                0, Mathf.Max(12, random_.Next(random_ground_width_range.x, random_ground_width_range.y)));
             for (int i = 1; i < num_ground; i++) {
                 var ground_data = builder_.NewGround(
                     random_.Next(random_ground_offset_range.x, random_ground_offset_range.y),

@@ -33,7 +33,8 @@ namespace GirlDash.Map {
         }
         public EnemyType enemyType = EnemyType.Scout;
         public int hp = 1;
-        public int atk = 1;
+        public int fire_atk = 1;
+        public int hit_atk = 1;
         public MapVector spawnPosition;
     }
 

@@ -49,19 +49,17 @@ namespace GirlDash.Map {
         public float sightRange { get; private set; }
 
         private BoxCollider2D dead_area_;
-        private BoxCollider2D left_wall_;
-        private BoxCollider2D right_wall_;
 
         private MapFactory map_factory_;
         private IMapGenerator map_generator_;
         private int next_block_index_;
 
         private void InitBoundingColliders() {
-            left_wall_ = MapUtils.CreateBoxCollider(
+            MapUtils.CreateBoxCollider(
                 "WallLeft", terrainFolder,
                 new MapRect(-MapConstants.kWallThickness + mapData.leftmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
-            right_wall_ = MapUtils.CreateBoxCollider(
+            MapUtils.CreateBoxCollider(
                 "WallRight", terrainFolder,
                 new MapRect(mapData.rightmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);

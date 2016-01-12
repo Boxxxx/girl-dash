@@ -7,6 +7,10 @@ namespace GirlDash {
         public float moveGravity = 10;
         public float moveSensitivity = 3;
 
+        public bool enableJump = true;
+        public bool enableFire = true;
+        public bool enableMove = false;
+
         private CharacterController controller_;
         private float last_horiz_axis_ = 0;
 
@@ -15,21 +19,22 @@ namespace GirlDash {
         }
 
         void Update() {
-            {
+            var debug_mode = GameController.Instance.debugMode;
+            if (enableFire || debug_mode) {
                 // Fire logic
                 if (Input.GetButtonDown(InputEvents.kFire)) {
                     controller_.Fire();
                 }
             }
 
-            {
+            if (enableJump || debug_mode) {
                 // Jump logic
                 if (Input.GetButtonDown(InputEvents.kJump)) {
                     controller_.Jump();
                 }
             }
 
-            {
+            if (enableMove || debug_mode)  {
                 // Move logic
                 //
                 // There is a special case: when turn around immedately, the Input.GetAxis() will return a zero in one frame,
@@ -64,7 +69,7 @@ namespace GirlDash {
                 }
                 last_horiz_axis_ = horiz_axis;
 
-                //controller_.Move(horiz_axis);
+                controller_.Move(horiz_axis);
             }
         }
     }

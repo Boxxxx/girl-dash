@@ -4,6 +4,7 @@ using System.Collections;
 namespace GirlDash {
     public static class Consts {
         public static readonly string kGroundLayer = "Ground";
+        public static readonly string kDamageAreaLayer = "DamageArea";
     }
 
     public static class ResourceNames {

@@ -28,15 +28,6 @@ namespace GirlDash {
             get {
                 return is_face_right_;
             }
-            private set {
-                if (is_face_right_ != value) {
-                    is_face_right_ = value;
-
-                    Vector3 local_scale = transform.localScale;
-                    local_scale.x = is_face_right_ ? 1 : -1;
-                    transform.localScale = local_scale;
-                }
-            }
         }
 
         public bool isAlive {
@@ -62,15 +53,34 @@ namespace GirlDash {
         }
 
         public int hp {
-            get { return character_data_.hp; }
+            get { return hp_; }
+            set {
+                if (hp_ != value) {
+                    hp_ = value;
+                    if (hp_ <= 0) {
+                        hp_ = 0;
+                        GameController.Instance.OnPlayerDie();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// This field indicates whether the right direction is major direction (local_scale.x == 1).
+        /// </summary>
+        protected virtual bool is_right_major {
+            get {
+                return true;
+            }
         }
 
         // Cached variables
-        private int ground_layermask_;
-        private Animator animator_;
-        private Rigidbody2D rigidbody2D_;
-        private CharacterData character_data_;
+        protected int ground_layermask_;
+        protected Animator animator_;
+        protected Rigidbody2D rigidbody2D_;
+        protected CharacterData character_data_;
 
+        private int hp_ = 0;
         private bool is_face_right_ = false;
         private bool cached_jump_trigger_ = false;
         private float last_y_speed_ = 0f;
@@ -78,7 +88,7 @@ namespace GirlDash {
 
         #region Public Methods
         public void Fire() {
-            if (!isAlive) {
+            if (!isAlive || muzzle == null /* must have a gun */) {
                 return;
             }
 
@@ -123,6 +133,9 @@ namespace GirlDash {
                 return;
             }
 
+            Move(0);
+            rigidbody2D_.velocity = Vector2.zero;
+
             isAlive = false;
             animator_.SetTrigger(AnimatorParameters.Die);
         }
@@ -131,19 +144,32 @@ namespace GirlDash {
             isAlive = true;
 
             isGrounded = false;
-            isFaceRight = true;
+            rigidbody2D_.isKinematic = false;
 
             character_data_ = character_data;
+            hp_ = character_data_.hp;
+
+            SetFaceRight(true, false /* force set*/);
         }
         #endregion
 
-        #region Private Methods
+        #region Private & Protected Methods
+        protected void SetFaceRight(bool value, bool force_set) {
+            if (force_set || is_face_right_ != value) {
+                is_face_right_ = value;
+
+                Vector3 local_scale = transform.localScale;
+                local_scale.x = is_face_right_ == is_right_major ? 1 : -1;
+                transform.localScale = local_scale;
+            }
+        }
+
         private bool GroundedTest() {
             return Physics2D.Linecast(transform.position, groundChecker.position, ground_layermask_);
         }
 
         private void Flip() {
-            isFaceRight = !isFaceRight;
+            SetFaceRight(!isFaceRight, false /* not force */);
         }
 
         private void GroundedUpdate() {
