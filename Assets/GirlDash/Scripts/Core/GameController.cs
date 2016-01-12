@@ -16,7 +16,7 @@ namespace GirlDash {
         // TODO(hyf042): replace it with more fancy things.
         public Transform deadLine;
 
-        public CharacterController playerController;
+        public PlayerController playerController;
         public Transform playerSpawnPoint;
 
         public CameraController cameraController;
@@ -25,7 +25,6 @@ namespace GirlDash {
         public bool move = true;
         public bool showDeadline = true;
         public float maximumDeadDistance = 5.68f;
-        public GUIStyle deadPromptStyle;
 
         public float progress;
         public StateEnum state = StateEnum.kNew;
@@ -68,6 +67,7 @@ namespace GirlDash {
             components_.Add(PoolManager.Instance);
             components_.Add(mapManager);
             components_.Add(cameraController);
+            components_.Add(playerController);
         }
 
         IEnumerator Start() {
@@ -76,6 +76,8 @@ namespace GirlDash {
 
             // Inits the map data.
             yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator()));
+
+            yield return StartCoroutine(playerController.Load(new CharacterData()));
 
             Restart();
         }

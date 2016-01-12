@@ -69,7 +69,7 @@ namespace GirlDash {
         private int ground_layermask_;
         private Animator animator_;
         private Rigidbody2D rigidbody2D_;
-        private CharacterData character_data_ = new CharacterData();
+        private CharacterData character_data_;
 
         private bool is_face_right_ = false;
         private bool cached_jump_trigger_ = false;
@@ -192,19 +192,16 @@ namespace GirlDash {
         #endregion
 
         #region Unity Functions
-        void Awake() {
+        protected virtual void Awake() {
             ground_layermask_ = 1 << LayerMask.NameToLayer(Consts.kGroundLayer);
             animator_ = GetComponent<Animator>();
             rigidbody2D_ = GetComponent<Rigidbody2D>();
         }
 
-        void Update() {
-            if (Input.GetButtonDown(InputEvents.kJump)) {
-                Jump();
+        protected virtual void FixedUpdate() {
+            if (character_data_ == null) {
+                return;
             }
-        }
-
-        void FixedUpdate() {
             GroundedUpdate();
             MoveUpdate();
             JumpUpdate();
