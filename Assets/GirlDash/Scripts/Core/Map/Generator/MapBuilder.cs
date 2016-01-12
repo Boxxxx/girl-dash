@@ -3,23 +3,12 @@ using System.Collections.Generic;
 
 namespace GirlDash.Map {
     /// <summary>
-    /// An instance to builder a whole map or a part of it.
-    /// Notice a complete map data is actually a simple wrap of a bunch of blocks.
-    /// </summary>
-    public interface IMapBuilder {
-        MapData BuildMap();
-        List<BlockData> BuildBlocks();
-    }
-
-    
-    
-    /// <summary>
     /// Simple map builder, the basic idea is that all terrian components are divided into two layers:
     /// - the first layer is grounds, thay are all the same height and do not overlap with each other.
     /// - the second layer is other widget componets which is placed related to grounds.
     /// - Of course, there is also enemy units.
     /// </summary>
-    public class SimpleMapBuilder : IMapBuilder {
+    public class SimpleMapBuilder {
         public class BlockSplitter {
             private List<TerrainData> grounds_;  // not owned
             private List<EnemyData> enemies_;  // not owned
@@ -40,8 +29,8 @@ namespace GirlDash.Map {
             /// Notice the 'grounds' will be cleared after this function.
             /// </summary>
             private static BlockData NextBlock(List<TerrainData> grounds,
-                                                 List<EnemyData> sorted_enemies, ref int enemy_index,
-                                                 List<TerrainData> sorted_widgets, ref int widget_index) {
+                                               List<EnemyData> sorted_enemies, ref int enemy_index,
+                                               List<TerrainData> sorted_widgets, ref int widget_index) {
                 if (grounds.Count == 0) {
                     Debug.LogError("BlockData must have at least one terrain.");
                     return null;
@@ -233,17 +222,10 @@ namespace GirlDash.Map {
             return terrian_data;
         }
 
-        public MapData BuildMap() {
+        public MapData InitMapData() {
             MapData map_data = new MapData();
             map_data.deadHeight = Mathf.Min(-1, options_.deadHeight);
             map_data.sightRange = new MapVector(MapValue.LowerBound(-11.36f), MapValue.UpperBound(11.36f));
-
-            map_data.blocks = block_splitter_.Split(options_.expectedBlockWidth, grounds_, enemies_, widgets_);
-            map_data.width = map_data.blocks[map_data.blocks.Count - 1].bound.max - map_data.blocks[0].bound.min;
-            Debug.Log(string.Format("[MapBuilder] Map data generated, total blocks: {0}, total width: {1}", map_data.blocks.Count, map_data.width));
-
-            Reset();
-
             return map_data;
         }
 
@@ -251,8 +233,6 @@ namespace GirlDash.Map {
             var blocks = block_splitter_.Split(options_.expectedBlockWidth, grounds_, enemies_, widgets_);
             int width = blocks.Count > 0 ? blocks[blocks.Count - 1].bound.max - blocks[0].bound.min : 0;
             Debug.Log(string.Format("[MapBuilder] Blocks data generated, total blocks: {0}, total width: {1}", blocks.Count, width));
-
-            Reset();
 
             return blocks;
         }

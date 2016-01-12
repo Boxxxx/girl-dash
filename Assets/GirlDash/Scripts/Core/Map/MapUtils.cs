@@ -5,6 +5,7 @@ namespace GirlDash.Map {
     public static class MapConstants {
         public const int kWallThickness = 1;
         public const int kWallHalfHeight = 1000;
+        public const int kInfinity = 1000000;
     }
 
     public static class MapUtils {
@@ -20,6 +21,12 @@ namespace GirlDash.Map {
             collider.isTrigger = is_trigger;
 
             return collider;
+        }
+
+        public static void SetBoxCollider(BoxCollider2D collider, MapRect map_rect) {
+            var rect = (Rect)map_rect;
+            collider.transform.localPosition = rect.center;
+            collider.size = rect.size;
         }
     }
 }

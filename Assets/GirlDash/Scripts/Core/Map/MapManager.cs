@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace GirlDash.Map {
@@ -31,7 +32,7 @@ namespace GirlDash.Map {
     }
 
     [RequireComponent(typeof(MapFactory))]
-    public class MapManager : MonoBehaviour {
+    public class MapManager : MonoBehaviour, IGameComponent {
         [Tooltip("Minimum of number of blocks that is cached.")]
         public int minBlocksToCacheup = 3;
         public Transform terrainFolder;
@@ -47,26 +48,30 @@ namespace GirlDash.Map {
         public float progress { get; private set; }
         public float sightRange { get; private set; }
 
-        private MapFactory map_factory;
-        private Collider2D dead_area;
+        private BoxCollider2D dead_area_;
+        private BoxCollider2D left_wall_;
+        private BoxCollider2D right_wall_;
+
+        private MapFactory map_factory_;
+        private IMapGenerator map_generator_;
         private int next_block_index_;
 
         private void InitBoundingColliders() {
-            MapUtils.CreateBoxCollider(
+            left_wall_ = MapUtils.CreateBoxCollider(
                 "WallLeft", terrainFolder,
-                new MapRect(-MapConstants.kWallThickness, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
+                new MapRect(-MapConstants.kWallThickness + mapData.leftmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
-            MapUtils.CreateBoxCollider(
+            right_wall_ = MapUtils.CreateBoxCollider(
                 "WallRight", terrainFolder,
-                new MapRect(mapData.width, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
+                new MapRect(mapData.rightmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
         }
         private void InitDeadArea() {
-            dead_area = MapUtils.CreateBoxCollider(
+            dead_area_ = MapUtils.CreateBoxCollider(
                 "DeadArea", terrainFolder,
-                new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.width, MapConstants.kWallThickness),
+                new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.rightmost, MapConstants.kWallThickness),
                 false /* is_trigger */);
-            dead_area.gameObject.layer = LayerMask.NameToLayer(Consts.kGroundLayer);
+            dead_area_.gameObject.layer = LayerMask.NameToLayer(Consts.kGroundLayer);
         }
         private void InitialBuild() {
             InitBoundingColliders();
@@ -101,6 +106,18 @@ namespace GirlDash.Map {
                 RefreshBlocks();
             }
         }
+
+        public IEnumerator Load(IMapGenerator map_generator) {
+            map_factory_ = GetComponent<MapFactory>();
+
+            yield return StartCoroutine(map_generator.Generate());
+
+            Reset(map_generator.GetMap());
+        }
+
+        public void GameStart() { }
+
+        public void GameOver() { }
 
         private void RefreshBlocks() {
             // Calcualtes the left and right bound value in map resolution,
@@ -152,7 +169,7 @@ namespace GirlDash.Map {
             if (next_block_index_ >= mapData.blocks.Count) {
                 return false;
             }
-            map_blocks.Add(new MapBlock(mapData.blocks[next_block_index_++], terrainFolder, map_factory));
+            map_blocks.Add(new MapBlock(mapData.blocks[next_block_index_++], terrainFolder, map_factory_));
             return true;
         }
 
@@ -161,39 +178,6 @@ namespace GirlDash.Map {
                 var child = folder.GetChild(i);
                 GameObject.Destroy(child);
             }
-        }
-
-        void Awake() {
-            map_factory = GetComponent<MapFactory>();
-
-            Reset(CreateMockMapData());
-        }
-
-        /// <summary>
-        /// For test only
-        /// </summary>
-        private MapData CreateMockMapData() {
-            var options = new SimpleMapBuilder.Options();
-            options.expectedBlockWidth = 15;
-            SimpleMapBuilder builder = new SimpleMapBuilder(options);
-
-            int num_ground = 100;
-            MapVector random_ground_width_range = new MapVector(3, 10);
-            MapVector random_ground_offset_range = new MapVector(0, 4);
-
-            builder.NewGround(
-                0, Random.Range(Mathf.Max(7, random_ground_width_range.x), random_ground_width_range.y));
-            for (int i = 1; i < num_ground; i++) {
-                var ground_data = builder.NewGround(
-                    Random.Range(random_ground_offset_range.x, random_ground_offset_range.y),
-                    Random.Range(random_ground_width_range.x, random_ground_width_range.y));
-                if (Random.value < 0.25f) {
-                    // 25% possibility to add a obstacle
-                    builder.AddObstacle(ground_data.region.width, Random.Range(1, 2), 0, 0);
-                }
-            }
-
-            return builder.BuildMap();
         }
     }
 }
