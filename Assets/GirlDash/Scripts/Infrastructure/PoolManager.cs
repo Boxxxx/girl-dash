@@ -11,6 +11,7 @@ namespace GirlDash {
         public bool showDebugLog = false;
         public bool dontDestroyOnLoad = false;
         public bool autoAddMissingPrefabPool = true;
+        public int capacityOfMissingPool = 10;
 
         private bool is_loaded_ = false;
         private Dictionary<string, ObjectPool> pools_ = new Dictionary<string, ObjectPool>();
@@ -38,6 +39,7 @@ namespace GirlDash {
         public ObjectPool NewPool(GameObject prefab) {
             ObjectPool.Options options = new ObjectPool.Options();
             options.prefab = prefab;
+            options.maxCapacity = capacityOfMissingPool;
             return NewPool(options);
         }
 

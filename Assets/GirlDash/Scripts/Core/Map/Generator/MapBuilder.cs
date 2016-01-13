@@ -76,7 +76,7 @@ namespace GirlDash.Map {
                 }
 
                 enemies_.Sort((lhs, rhs) => {
-                    return lhs.spawnPosition.x - rhs.spawnPosition.y;
+                    return lhs.spawnPosition.x - rhs.spawnPosition.x;
                 });
 
                 // although the widgets share the structure with grounds,
@@ -220,6 +220,24 @@ namespace GirlDash.Map {
             widgets_.Add(terrian_data);
 
             return terrian_data;
+        }
+
+        public EnemyData AddEnemy(EnemyData.EnemyType type, int offset_x, int hp, int fire_atk, int hit_atk, int offset_y) {
+            EnemyData enemy_data = new EnemyData();
+            enemy_data.enemyType = type;
+            enemy_data.hp = hp;
+            enemy_data.fire_atk = fire_atk;
+            enemy_data.hit_atk = hit_atk;
+
+            MapVector current_offset = CurrentGroundOffset;
+            enemy_data.spawnPosition = new MapVector(current_offset.x + offset_x, current_offset.y + offset_y);
+            enemies_.Add(enemy_data);
+
+            return enemy_data;
+        }
+
+        public EnemyData AddEnemy(EnemyData.EnemyType type, int offset, int hp, int fire_atk, int hit_atk) {
+            return AddEnemy(type, offset, hp, fire_atk, hit_atk, 0);
         }
 
         public MapData InitMapData() {

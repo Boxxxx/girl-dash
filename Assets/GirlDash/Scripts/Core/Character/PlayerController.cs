@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace GirlDash {
     public class PlayerController : CharacterController, IGameComponent {
+        public bool invincible = false;
         private bool running_ = false;
         private HashSet<int> hit_damagearea_ids = new HashSet<int>();
         private int damagearea_layer_mask_;
@@ -45,6 +46,9 @@ namespace GirlDash {
         }
 
         void OnTriggerEnter2D(Collider2D other) {
+            if (invincible) {
+                return;
+            }
             if (other.gameObject.layer == damagearea_layer_mask_) {
                 var damage_area = other.gameObject.GetComponent<DamageArea>();
                 if (damage_area == null) {

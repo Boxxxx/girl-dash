@@ -24,7 +24,7 @@ namespace GirlDash {
             }
         }
 
-        public void Reset(EnemyData enemy_data) {
+        public void SpawnSelf(EnemyData enemy_data, Transform parent_transform) {
             CharacterData character_data = new CharacterData();
 
             character_data.name = enemy_data.enemyType.ToString();
@@ -39,8 +39,19 @@ namespace GirlDash {
 
             // Faces left
             SetFaceRight(false, true /* force set */);
+            transform.parent = parent_transform;
+            transform.localPosition = new Vector2(
+                // the center x axis of a unit length from (x to x + 1).
+                MapValue.RealValue(enemy_data.spawnPosition.x + enemy_data.spawnPosition.x + 1) * 0.5f,
+                MapValue.RealValue(enemy_data.spawnPosition.y));
 
             StartCoroutine(Logic());
+        }
+
+        public void RecycleSelf() {
+            StopAllCoroutines();
+            rigidbody2D_.isKinematic = true;
+            PoolManager.Deallocate(this);
         }
 
         private IEnumerator Logic() {
@@ -55,13 +66,6 @@ namespace GirlDash {
                     yield return new WaitForSeconds(2);
                 }
             }
-        }
-
-        void Start() {
-            EnemyData enemy_data = new EnemyData();
-            enemy_data.enemyType = EnemyData.EnemyType.Dog;
-
-            Reset(enemy_data);
         }
     }
 }

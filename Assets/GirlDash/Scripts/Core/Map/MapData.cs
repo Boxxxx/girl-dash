@@ -16,6 +16,7 @@ namespace GirlDash.Map {
         public TerrainType terrainType = TerrainType.Ground;
         public InteractiveType interactiveType = InteractiveType.Solid;
 
+        // Consider this terrain compoent take the whole region area, from topleft to bottomright.
         public MapRect region;
         public MapVector center {
             get { return new MapVector(region.x + (region.width >> 1), region.y + (region.height >> 1)); }
@@ -35,6 +36,11 @@ namespace GirlDash.Map {
         public int hp = 1;
         public int fire_atk = 1;
         public int hit_atk = 1;
+
+        // Since the MapVector is always integer and the ground component takes 1x1 block from integer coordinate,
+        // if we want to put a enemy in the center of a ground block, it must have decimal coordinate, which is difficult to maintain.
+        // Thus, we only set spawnPosition to integer coordinate,
+        // however what it really means is the center of the 1 unit start from this spawnPosition.
         public MapVector spawnPosition;
     }
 
