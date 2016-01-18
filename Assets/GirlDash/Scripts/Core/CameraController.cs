@@ -2,8 +2,9 @@
 using System.Collections;
 
 namespace GirlDash {
-    public class CameraController : MonoBehaviour, IGameComponent {
+    public class CameraController : SingletonObject<MonoBehaviour>, IGameComponent {
         public Transform target;
+        public float offsetX = 4f;
 
         public void GameStart() { }
         public void GameOver() { }
@@ -14,7 +15,7 @@ namespace GirlDash {
         /// </summary>
         private void Track(Transform target) {
             var now_position = transform.position;
-            now_position.x = target.position.x;
+            now_position.x = target.position.x + offsetX;
             transform.position = now_position;
         }
 

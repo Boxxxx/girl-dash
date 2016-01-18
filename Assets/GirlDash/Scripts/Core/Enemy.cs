@@ -1,14 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 using GirlDash.Map;
+using System;
 
 namespace GirlDash {
-    public class Enemy : CharacterController {
+    public abstract class Enemy : CharacterController {
         public new float moveSpeed = 5f;
         public new float jumpForce = 500f;
         public DamageArea damageArea;
 
+        private bool is_action_ = false;
         private Renderer renderer_ = null;
+
         protected bool IsVisible {
             get {
                 if (renderer_ == null) {
@@ -33,9 +36,12 @@ namespace GirlDash {
             character_data.atk = enemy_data.fire_atk;
             character_data.hp = enemy_data.hp;
 
-            damageArea.Reset(enemy_data.hit_atk);
+            damageArea.Reset(enemy_data.hit_atk, DamageArea.DamageGroup.Enemy);
 
             Reset(character_data);
+            if (muzzle_ != null) {
+                muzzle_.Reset();
+            }
 
             // Faces left
             SetFaceRight(false, true /* force set */);
@@ -45,7 +51,7 @@ namespace GirlDash {
                 MapValue.RealValue(enemy_data.spawnPosition.x + enemy_data.spawnPosition.x + 1) * 0.5f,
                 MapValue.RealValue(enemy_data.spawnPosition.y));
 
-            StartCoroutine(Logic());
+            is_action_ = false;
         }
 
         public void RecycleSelf() {
@@ -54,17 +60,27 @@ namespace GirlDash {
             PoolManager.Deallocate(this);
         }
 
-        private IEnumerator Logic() {
-            while (true) {
-                // Delay 1 seconds
-                yield return new WaitForSeconds(1);
+        protected abstract void Action();
 
-                if (IsVisible) {
-                    Jump();
+        // The action logic of an enemy, this should be replaced with a behaviour machine.
+        protected virtual bool CheckActive() {
+            return true;
+        }
 
-                    // Waits for jump down
-                    yield return new WaitForSeconds(2);
-                }
+        protected override bool CheckTakeDamage(DamageArea damage_area) {
+            return damage_area.damageGroup == DamageArea.DamageGroup.Player;
+        }
+
+        protected override void OnDied() { gameObject.SetActive(false); }
+
+        protected override void OnNewBullet(Bullet bullet) {
+            bullet.InitDamage(atk, DamageArea.DamageGroup.Enemy);
+        }
+
+        void Update() {
+            if (!is_action_ && CheckActive()) {
+                is_action_ = true;
+                Action();
             }
         }
     }

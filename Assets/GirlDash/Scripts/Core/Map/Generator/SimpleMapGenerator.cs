@@ -39,7 +39,7 @@ namespace GirlDash.Map {
                     // 25% possibility to add a obstacle
                     builder_.AddObstacle(ground_data.region.width, random_.Next(1, 2), 0, 0);
                 }
-                else if (random_.NextDouble() < 0.25) {
+                else if (random_.NextDouble() < 0.5) {
                     builder_.AddEnemy(EnemyData.EnemyType.Dog, random_.Next(0, ground_data.region.width), 1, 1, 1);
                 }
             }

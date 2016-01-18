@@ -4,6 +4,10 @@ using System.Collections;
 namespace GirlDash {
     [RequireComponent(typeof(Collider2D))]
     public class DamageArea : MonoBehaviour {
+        public enum DamageGroup {
+            Player,
+            Enemy
+        }
         private static int id_counter = 0;
 
         public int uniqueId {
@@ -12,10 +16,16 @@ namespace GirlDash {
         public int damage {
             get; private set;
         }
+        public DamageGroup damageGroup {
+            get; private set;
+        }
 
-        public void Reset(int damage) {
+        public void Reset(int damage, DamageGroup group) {
             uniqueId = ++id_counter;
             this.damage = damage;
+            this.damageGroup = group;
         }
+
+        public virtual void OnTakeDamage(CharacterController character) {}
     }
 }

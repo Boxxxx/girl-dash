@@ -51,6 +51,14 @@ namespace GirlDash {
             state = StateEnum.kPlaying;
         }
 
+        public float GetDistToPlayer(Transform transform) {
+            return Mathf.Abs(transform.position.x - playerController.transform.position.x);
+        }
+
+        public bool InFrontOfPlayer(Transform transform) {
+            return transform.position.x >= playerController.transform.position.x;
+        }
+
         public void OnPlayerDie() {
             if (isPlaying) {
                 // Stops the player.
@@ -103,10 +111,14 @@ namespace GirlDash {
                 }
             }
 
-            // Only for debugging, draw a dead line.
-            var tmp_position = deadLine.transform.localPosition;
-            tmp_position.x = deadProgress;
-            deadLine.transform.localPosition = tmp_position;
+            // Only for debugging, draw a dead line, run close to deadProgress smoothly.
+            var deadline_position = deadLine.transform.localPosition;
+            if (deadLine.transform.localPosition.x - deadProgress < Consts.kSoftEps) {
+                deadline_position.x = deadProgress;
+            } else {
+                deadline_position.x = (deadLine.transform.localPosition.x - deadProgress) / 3 + deadProgress;
+            }
+            deadLine.transform.localPosition = deadline_position;
         }
 
         /// <summary>
@@ -115,6 +127,7 @@ namespace GirlDash {
         void OnGUI() {
             GUI.color = Color.red;
             GUI.Label(new Rect(0, 0, 100, 50), state.ToString());
+            GUI.Label(new Rect(0, 50, 100, 50), string.Format("HP: {0}", playerController.hp));
         }
     }
 }

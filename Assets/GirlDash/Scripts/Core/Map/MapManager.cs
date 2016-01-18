@@ -135,6 +135,11 @@ namespace GirlDash.Map {
 
         public void GameOver() { }
 
+        public void RecycleFolder(Transform folder) {
+            folder.gameObject.SetActive(false);
+            unused_folder_queue_.Enqueue(folder);
+        }
+
         private void RefreshBlocks() {
             // Calcualtes the left and right bound value in map resolution,
             // use lower as left and upper as right to make sure it includes the whole sight view.
@@ -212,11 +217,6 @@ namespace GirlDash.Map {
             folder.name = name;
             folder.gameObject.SetActive(true);
             return folder;
-        }
-
-        public void RecycleFolder(Transform folder) {
-            folder.gameObject.SetActive(false);
-            unused_folder_queue_.Enqueue(folder);
         }
 
         /// <summary>

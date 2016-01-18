@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace GirlDash {
-    public class CharacterController : MonoBehaviour {
+    public abstract class CharacterController : MonoBehaviour {
         public class AnimatorParameters {
             public static readonly string Jump = "jump";
             public static readonly string Fall = "fall";
@@ -13,8 +13,8 @@ namespace GirlDash {
             public static readonly string IsMove = "is_move";
         }
 
+        public bool invincible = false;
         public Transform groundChecker;
-        public Transform muzzle;
 
         public Vector2 firePositionFluctuation = new Vector2(0, 0.1f);
         public float fireDirectionFluctuation = 5f;
@@ -59,7 +59,8 @@ namespace GirlDash {
                     hp_ = value;
                     if (hp_ <= 0) {
                         hp_ = 0;
-                        GameController.Instance.OnPlayerDie();
+                        isAlive = false;
+                        OnDied();
                     }
                 }
             }
@@ -79,6 +80,7 @@ namespace GirlDash {
         protected Animator animator_;
         protected Rigidbody2D rigidbody2D_;
         protected CharacterData character_data_;
+        protected Muzzle muzzle_;
 
         private int hp_ = 0;
         private bool is_face_right_ = false;
@@ -86,28 +88,17 @@ namespace GirlDash {
         private float last_y_speed_ = 0f;
         private float move_axis_ = 0f;
 
+        private HashSet<int> hit_damagearea_ids = new HashSet<int>();
+        private int damagearea_layer_mask_;
+
         #region Public Methods
         public void Fire() {
-            if (!isAlive || muzzle == null /* must have a gun */) {
+            if (!isAlive || muzzle_ == null /* must have a gun */) {
                 return;
             }
 
-            var bullet = PoolManager.Allocate<Bullet>(ResourceNames.kRifleBullet);
-            if (bullet == null) {
-                return;
-            }
-            bullet.transform.position = muzzle.position + RandomVector(firePositionFluctuation);
-
-            Vector2 direction = isFaceRight ? Vector2.right : Vector2.left;
-            if (bullet.transform.position.y >= muzzle.position.y) {
-                direction = Quaternion.Euler(0, 0, Random.Range(0, fireDirectionFluctuation)) * direction;
-            } else {
-                direction = Quaternion.Euler(0, 0, Random.Range(-fireDirectionFluctuation, 0)) * direction;
-            }
-            
-            bullet.Init(0, direction);
-
-            animator_.SetTrigger(AnimatorParameters.Fire);
+            muzzle_.Fire();
+            SetActionTrigger(AnimatorParameters.Fire);
         }
 
         public void Jump() {
@@ -136,8 +127,7 @@ namespace GirlDash {
             Move(0);
             rigidbody2D_.velocity = Vector2.zero;
 
-            isAlive = false;
-            animator_.SetTrigger(AnimatorParameters.Die);
+            SetActionTrigger(AnimatorParameters.Die);
         }
 
         public void Reset(CharacterData character_data) {
@@ -148,6 +138,8 @@ namespace GirlDash {
 
             character_data_ = character_data;
             hp_ = character_data_.hp;
+
+            hit_damagearea_ids.Clear();
 
             SetFaceRight(true, false /* force set*/);
         }
@@ -170,6 +162,11 @@ namespace GirlDash {
 
         private void Flip() {
             SetFaceRight(!isFaceRight, false /* not force */);
+        }
+
+        private void SetActionTrigger(string trigger) {
+            animator_.SetTrigger(trigger);
+            OnActionTrigger(trigger);
         }
 
         private void GroundedUpdate() {
@@ -195,7 +192,7 @@ namespace GirlDash {
 
         private void JumpUpdate() {
             if (cached_jump_trigger_) {
-                animator_.SetTrigger(AnimatorParameters.Jump);
+                SetActionTrigger(AnimatorParameters.Jump);
                 rigidbody2D_.AddForce(new Vector2(0f, jumpForce));
 
                 cached_jump_trigger_ = false;
@@ -207,14 +204,28 @@ namespace GirlDash {
                 return;
             }
             if (last_y_speed_ >= 0 && rigidbody2D_.velocity.y < 0) {
-                animator_.SetTrigger(AnimatorParameters.Fall);
+                SetActionTrigger(AnimatorParameters.Fall);
             }
             last_y_speed_ = rigidbody2D_.velocity.y;
         }
 
-        private Vector3 RandomVector(Vector2 fluctuation) {
-            return new Vector3(Random.Range(-firePositionFluctuation.x, firePositionFluctuation.x), Random.Range(-firePositionFluctuation.y, firePositionFluctuation.y), 0);
+        protected void HitByDamageArea(DamageArea damage_area) {
+            if (hit_damagearea_ids.Contains(damage_area.uniqueId)) {
+                // Saint Seiya will never be hit by the same damage twice!
+                return;
+            }
+
+            hit_damagearea_ids.Add(damage_area.uniqueId);
+            hp -= damage_area.damage;
+            damage_area.OnTakeDamage(this);
         }
+
+        protected abstract void OnNewBullet(Bullet bullet);
+        protected abstract void OnDied();
+        protected virtual void OnActionTrigger(string trigger) {}
+
+        // Returns whether it should take this damge or not.
+        protected virtual bool CheckTakeDamage(DamageArea damage_area) { return false; }
         #endregion
 
         #region Unity Functions
@@ -222,6 +233,10 @@ namespace GirlDash {
             ground_layermask_ = 1 << LayerMask.NameToLayer(Consts.kGroundLayer);
             animator_ = GetComponent<Animator>();
             rigidbody2D_ = GetComponent<Rigidbody2D>();
+            muzzle_ = GetComponentInChildren<Muzzle>();
+            muzzle_.Register(this, OnNewBullet);
+
+            damagearea_layer_mask_ = LayerMask.NameToLayer(Consts.kDamageAreaLayer);
         }
 
         protected virtual void FixedUpdate() {
@@ -232,6 +247,21 @@ namespace GirlDash {
             MoveUpdate();
             JumpUpdate();
             FallUpdate();
+        }
+
+        protected virtual void OnTriggerEnter2D(Collider2D other) {
+            if (invincible) {
+                return;
+            }
+            if (other.gameObject.layer == damagearea_layer_mask_) {
+                var damage_area = other.gameObject.GetComponent<DamageArea>();
+                if (damage_area == null) {
+                    Debug.LogError(other.name + " should have a damage area.");
+                }
+                if (CheckTakeDamage(damage_area)) {
+                    HitByDamageArea(damage_area);
+                }
+            }
         }
         #endregion
     }

@@ -3,6 +3,7 @@ using System.Collections;
 
 namespace GirlDash {
     public static class Consts {
+        public const float kSoftEps = 1e-5f;
         public static readonly string kGroundLayer = "Ground";
         public static readonly string kDamageAreaLayer = "DamageArea";
     }
