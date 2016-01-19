@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace GirlDash {
+    [RequireComponent(typeof(Animator), typeof(SkeletonAnimator))]
     public abstract class CharacterController : MonoBehaviour {
         public class AnimatorParameters {
             public static readonly string Jump = "jump";
@@ -83,6 +84,7 @@ namespace GirlDash {
         // Cached variables
         protected int ground_layermask_;
         protected Animator animator_;
+        protected SkeletonAnimator skeleton_animator_;
         protected Rigidbody2D rigidbody2D_;
         protected CharacterData character_data_;
         protected Muzzle muzzle_;
@@ -212,6 +214,13 @@ namespace GirlDash {
             last_y_speed_ = rigidbody2D_.velocity.y;
         }
 
+        private void SyncSkeletonPositions() {
+            if (muzzle_ != null) {
+                var bone = skeleton_animator_.skeleton.Data.FindBone("muzzle");
+                Debug.Log(string.Format("position: {0}, {1}", bone.x, bone.y));
+            }
+        }
+
         protected void HitByDamageArea(DamageArea damage_area) {
             if (hit_damagearea_ids.Contains(damage_area.uniqueId)) {
                 // Saint Seiya will never be hit by the same damage twice!
@@ -235,6 +244,7 @@ namespace GirlDash {
         protected virtual void Awake() {
             ground_layermask_ = 1 << LayerMask.NameToLayer(Consts.kGroundLayer);
             animator_ = GetComponent<Animator>();
+            skeleton_animator_ = GetComponent<SkeletonAnimator>();
             rigidbody2D_ = GetComponent<Rigidbody2D>();
             muzzle_ = GetComponentInChildren<Muzzle>();
             muzzle_.Register(this, OnNewBullet);
@@ -250,6 +260,10 @@ namespace GirlDash {
             MoveUpdate();
             JumpUpdate();
             FallUpdate();
+        }
+
+        protected virtual void Update() {
+            SyncSkeletonPositions();
         }
 
         protected virtual void OnTriggerEnter2D(Collider2D other) {
