@@ -2,7 +2,7 @@
 using GirlDash.Map;
 
 namespace GirlDash {
-    public class StartingLine : MonoBehaviour {
+    public class StartingLine : SingletonObject<StartingLine> {
         public Vector2 GetOffset(Vector2 position) {
             return position - (Vector2)transform.position;
         }

@@ -21,17 +21,16 @@ namespace GirlDash {
             running_ = false;
         }
 
-        protected override void FixedUpdate() {
-            if (running_) {
-                base.FixedUpdate();
-            }
-        }
-
         protected override void OnNewBullet(Bullet bullet) {
             bullet.InitDamage(atk, DamageArea.DamageGroup.Player);
         }
 
         protected override void OnDied() {
+            Move(0);
+            rigidbody2D_.velocity = Vector2.zero;
+
+            SetActionTrigger(AnimatorParameters.Die);
+
             GameController.Instance.OnPlayerDie();
         }
 
@@ -43,6 +42,12 @@ namespace GirlDash {
         protected void Start() {
             if (muzzle_ != null) {
                 muzzle_.Reset();
+            }
+        }
+
+        protected override void FixedUpdate() {
+            if (running_) {
+                base.FixedUpdate();
             }
         }
         #endregion

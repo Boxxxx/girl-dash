@@ -11,6 +11,11 @@ namespace GirlDash {
             kDead
         }
 
+        public struct RuntimeInfo {
+            public float progress;
+            public float deadProgress;
+        }
+
         public StartingLine startingLine;
         // Only for debug, a line to show dead progress.
         // TODO(hyf042): replace it with more fancy things.
@@ -37,6 +42,11 @@ namespace GirlDash {
         public bool isPlaying {
             get { return state == StateEnum.kPlaying; }
         }
+        public EnemyQueue enemyQueue {
+            get { return enemy_queue_; }
+        }
+
+        private EnemyQueue enemy_queue_ = new EnemyQueue();
 
         private void Restart() {
             playerController.transform.position = playerSpawnPoint.transform.position;
@@ -51,6 +61,24 @@ namespace GirlDash {
             state = StateEnum.kPlaying;
         }
 
+        #region Game Events
+        public void OnEnemyBorn(Enemy enemy) {
+            enemy_queue_.NewEnemy(enemy);
+        }
+        public void OnEnemyInView(Enemy enemy) {
+        }
+        public void OnEnemyAction(Enemy enemy) {
+        }
+        public void OnEnemyDestroy(Enemy enemy) {
+            enemy_queue_.RemoveEnemy(enemy);
+        }
+        #endregion
+
+        #region Public Interfaces
+        public void Register(IGameComponent component) {
+            components_.Add(component);
+        }
+
         public float GetDistToPlayer(Transform transform) {
             return Mathf.Abs(transform.position.x - playerController.transform.position.x);
         }
@@ -59,11 +87,15 @@ namespace GirlDash {
             return transform.position.x >= playerController.transform.position.x;
         }
 
+        public RuntimeInfo GetRuntimeInfo() {
+            return new RuntimeInfo() {
+                progress = progress,
+                deadProgress = deadProgress
+            };
+        }
+
         public void OnPlayerDie() {
             if (isPlaying) {
-                // Stops the player.
-                playerController.Die();
-
                 state = StateEnum.kDead;
 
                 for (int i = 0; i < components_.Count; i++) {
@@ -71,12 +103,14 @@ namespace GirlDash {
                 }
             }
         }
+        #endregion
 
+        #region Unity Callbacks
         void Awake() {
-            components_.Add(PoolManager.Instance);
-            components_.Add(mapManager);
-            components_.Add(cameraController);
-            components_.Add(playerController);
+            Register(PoolManager.Instance);
+            Register(mapManager);
+            Register(cameraController);
+            Register(playerController);
         }
 
         IEnumerator Start() {
@@ -107,7 +141,7 @@ namespace GirlDash {
                 }
 
                 if (deadProgress >= progress) {
-                    OnPlayerDie();
+                    playerController.Die();
                 }
             }
 
@@ -119,6 +153,8 @@ namespace GirlDash {
                 deadline_position.x = (deadLine.transform.localPosition.x - deadProgress) / 3 + deadProgress;
             }
             deadLine.transform.localPosition = deadline_position;
+
+            enemy_queue_.Update(progress, deadProgress);
         }
 
         /// <summary>
@@ -129,5 +165,6 @@ namespace GirlDash {
             GUI.Label(new Rect(0, 0, 100, 50), state.ToString());
             GUI.Label(new Rect(0, 50, 100, 50), string.Format("HP: {0}", playerController.hp));
         }
+        #endregion
     }
 }

@@ -10,14 +10,11 @@ namespace GirlDash {
         public DamageArea damageArea;
 
         private bool is_action_ = false;
-        private Renderer renderer_ = null;
+        private bool is_visible_ = false;
 
-        protected bool IsVisible {
+        public  bool IsVisible {
             get {
-                if (renderer_ == null) {
-                    renderer_ = GetComponent<Renderer>();
-                }
-                return renderer_.isVisible;
+                return CameraController.Instance.CheckInView(transform, false /* cached bounds is ok */);
             }
         }
 
@@ -52,15 +49,23 @@ namespace GirlDash {
                 MapValue.RealValue(enemy_data.spawnPosition.y));
 
             is_action_ = false;
+            is_visible_ = false;
+
+            GameController.Instance.OnEnemyBorn(this);
         }
 
         public void RecycleSelf() {
+            Die();
+
             StopAllCoroutines();
             rigidbody2D_.isKinematic = true;
             PoolManager.Deallocate(this);
         }
 
         protected abstract void Action();
+        protected virtual void OnVisible() {
+            GameController.Instance.OnEnemyAction(this);
+        }
 
         // The action logic of an enemy, this should be replaced with a behaviour machine.
         protected virtual bool CheckActive() {
@@ -71,14 +76,23 @@ namespace GirlDash {
             return damage_area.damageGroup == DamageArea.DamageGroup.Player;
         }
 
-        protected override void OnDied() { gameObject.SetActive(false); }
+        protected override void OnDied() {
+            GameController.Instance.OnEnemyDestroy(this);
+            gameObject.SetActive(false);
+        }
 
         protected override void OnNewBullet(Bullet bullet) {
             bullet.InitDamage(atk, DamageArea.DamageGroup.Enemy);
         }
 
         void Update() {
+            if (!is_visible_ && IsVisible) {
+                is_visible_ = true;
+                OnVisible();
+            }
             if (!is_action_ && CheckActive()) {
+                GameController.Instance.OnEnemyAction(this);
+
                 is_action_ = true;
                 Action();
             }

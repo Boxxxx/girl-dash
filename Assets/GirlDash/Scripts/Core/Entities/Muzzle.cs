@@ -5,6 +5,7 @@ namespace GirlDash {
     using Random = UnityEngine.Random;
 
     public class Muzzle : MonoBehaviour {
+        public CrossHairs crossHairs;
         public Bullet bullet;
         public int numBulletsPerShoot = 1;
         public float fireTimePeriod = 0.25f;
@@ -37,7 +38,14 @@ namespace GirlDash {
             }
 
             Vector3 position = transform.position + Utils.RandomVector(firePositionFluctuation);
-            Vector2 direction = controller_.isFaceRight ? Vector2.right : Vector2.left;
+            Vector2 direction;
+            
+            if (crossHairs != null) {
+                direction = crossHairs.GetDirection(controller_.isFaceRight);
+            } else {
+                direction = controller_.isFaceRight? Vector2.right: Vector2.left;
+            }
+
             if (position.y >= transform.position.y) {
                 direction = Quaternion.Euler(0, 0, Random.Range(0, fireDirectionFluctuation)) * direction;
             }

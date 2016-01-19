@@ -15,6 +15,7 @@ namespace GirlDash {
 
         public bool invincible = false;
         public Transform groundChecker;
+        public Transform targetPosition;
 
         public Vector2 firePositionFluctuation = new Vector2(0, 0.1f);
         public float fireDirectionFluctuation = 5f;
@@ -59,11 +60,15 @@ namespace GirlDash {
                     hp_ = value;
                     if (hp_ <= 0) {
                         hp_ = 0;
-                        isAlive = false;
-                        OnDied();
+                        Die();
                     }
                 }
             }
+        }
+
+        // local position
+        public float position {
+            get { return StartingLine.Instance.GetOffset(transform).x; }
         }
 
         /// <summary>
@@ -123,11 +128,9 @@ namespace GirlDash {
             if (!isAlive) {
                 return;
             }
+            isAlive = false;
 
-            Move(0);
-            rigidbody2D_.velocity = Vector2.zero;
-
-            SetActionTrigger(AnimatorParameters.Die);
+            OnDied();
         }
 
         public void Reset(CharacterData character_data) {
@@ -164,7 +167,7 @@ namespace GirlDash {
             SetFaceRight(!isFaceRight, false /* not force */);
         }
 
-        private void SetActionTrigger(string trigger) {
+        protected void SetActionTrigger(string trigger) {
             animator_.SetTrigger(trigger);
             OnActionTrigger(trigger);
         }

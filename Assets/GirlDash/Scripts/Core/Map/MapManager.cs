@@ -62,6 +62,7 @@ namespace GirlDash.Map {
         /// </summary>
         private List<MapBlock> map_blocks = new List<MapBlock>();
         private Queue<Transform> unused_folder_queue_ = new Queue<Transform>();
+        private EnemyQueue enemy_queue_ = new EnemyQueue(); 
 
         public MapData mapData { get; private set; }
 
@@ -110,6 +111,8 @@ namespace GirlDash.Map {
                 RecycleBlock(map_blocks[i]);
             }
             map_blocks.Clear();
+
+            enemy_queue_.Clear();
 
             // Initial build
             InitialBuild();
