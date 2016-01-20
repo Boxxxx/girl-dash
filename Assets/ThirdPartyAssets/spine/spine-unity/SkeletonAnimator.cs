@@ -34,7 +34,11 @@ public class SkeletonAnimator : SkeletonRenderer, ISkeletonAnimation {
 		remove { _UpdateComplete -= value; }
 	}
 
-	protected event UpdateBonesDelegate _UpdateLocal;
+    public delegate void EventDelegate(SkeletonAnimator animator, int layerIndex, Spine.Event e);
+    public event EventDelegate Event;
+    private ExposedList<Spine.Event> events = new ExposedList<Spine.Event>();
+
+    protected event UpdateBonesDelegate _UpdateLocal;
 	protected event UpdateBonesDelegate _UpdateWorld;
 	protected event UpdateBonesDelegate _UpdateComplete;
 
@@ -83,8 +87,9 @@ public class SkeletonAnimator : SkeletonRenderer, ISkeletonAnimation {
 		int layerCount = animator.layerCount;
 
 		for (int i = 0; i < layerCount; i++) {
+            events.Clear();
 
-			float layerWeight = animator.GetLayerWeight(i);
+            float layerWeight = animator.GetLayerWeight(i);
 			if (i == 0)
 				layerWeight = 1;
 
@@ -109,7 +114,7 @@ public class SkeletonAnimator : SkeletonRenderer, ISkeletonAnimation {
 						continue;
 
 					float time = stateInfo.normalizedTime * info.clip.length;
-					animationTable[GetAnimationClipNameHashCode(info.clip)].Mix(skeleton, Mathf.Max(0, time - deltaTime), time, stateInfo.loop, null, weight);
+					animationTable[GetAnimationClipNameHashCode(info.clip)].Mix(skeleton, Mathf.Max(0, time - deltaTime), time, stateInfo.loop, events, weight);
 				}
 
 				if (nextStateInfo.fullPathHash != 0) {
@@ -120,7 +125,7 @@ public class SkeletonAnimator : SkeletonRenderer, ISkeletonAnimation {
 							continue;
 
 						float time = nextStateInfo.normalizedTime * info.clip.length;
-						animationTable[GetAnimationClipNameHashCode(info.clip)].Mix(skeleton, Mathf.Max(0, time - deltaTime), time, nextStateInfo.loop, null, weight);
+						animationTable[GetAnimationClipNameHashCode(info.clip)].Mix(skeleton, Mathf.Max(0, time - deltaTime), time, nextStateInfo.loop, events, weight);
 					}
 				}
 			} else if (mode >= MixMode.MixNext) {
@@ -134,7 +139,7 @@ public class SkeletonAnimator : SkeletonRenderer, ISkeletonAnimation {
 						continue;
 
 					float time = stateInfo.normalizedTime * info.clip.length;
-					animationTable[GetAnimationClipNameHashCode(info.clip)].Apply(skeleton, Mathf.Max(0, time - deltaTime), time, stateInfo.loop, null);
+					animationTable[GetAnimationClipNameHashCode(info.clip)].Apply(skeleton, Mathf.Max(0, time - deltaTime), time, stateInfo.loop, events);
 					break;
 				}
 
@@ -146,7 +151,7 @@ public class SkeletonAnimator : SkeletonRenderer, ISkeletonAnimation {
 						continue;
 
 					float time = stateInfo.normalizedTime * info.clip.length;
-					animationTable[GetAnimationClipNameHashCode(info.clip)].Mix(skeleton, Mathf.Max(0, time - deltaTime), time, stateInfo.loop, null, weight);
+					animationTable[GetAnimationClipNameHashCode(info.clip)].Mix(skeleton, Mathf.Max(0, time - deltaTime), time, stateInfo.loop, events, weight);
 				}
 
 				c = 0;
@@ -161,7 +166,7 @@ public class SkeletonAnimator : SkeletonRenderer, ISkeletonAnimation {
 								continue;
 
 							float time = nextStateInfo.normalizedTime * info.clip.length;
-							animationTable[GetAnimationClipNameHashCode(info.clip)].Apply(skeleton, Mathf.Max(0, time - deltaTime), time, nextStateInfo.loop, null);
+							animationTable[GetAnimationClipNameHashCode(info.clip)].Apply(skeleton, Mathf.Max(0, time - deltaTime), time, nextStateInfo.loop, events);
 							break;
 						}
 					}
@@ -174,11 +179,16 @@ public class SkeletonAnimator : SkeletonRenderer, ISkeletonAnimation {
 							continue;
 
 						float time = nextStateInfo.normalizedTime * info.clip.length;
-						animationTable[GetAnimationClipNameHashCode(info.clip)].Mix(skeleton, Mathf.Max(0, time - deltaTime), time, nextStateInfo.loop, null, weight);
+						animationTable[GetAnimationClipNameHashCode(info.clip)].Mix(skeleton, Mathf.Max(0, time - deltaTime), time, nextStateInfo.loop, events, weight);
 					}
 				}
 			}
-		}
+
+            for (int ii = 0, nn = events.Count; ii < nn; ii++) {
+                Spine.Event e = events.Items[ii];
+                if (Event != null) Event(this, i, e);
+            }
+        }
 
 		if (_UpdateLocal != null)
 			_UpdateLocal(this);

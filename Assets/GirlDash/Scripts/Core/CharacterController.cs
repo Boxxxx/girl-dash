@@ -12,6 +12,7 @@ namespace GirlDash {
             public static readonly string Victory = "victory";
             public static readonly string Fire = "fire";
             public static readonly string IsMove = "is_move";
+            public static readonly string FireEvent = "fire";
         }
 
         public bool invincible = false;
@@ -99,7 +100,7 @@ namespace GirlDash {
         private int damagearea_layer_mask_;
 
         #region Public Methods
-        public void Fire() {
+        public virtual void Fire() {
             if (!isAlive || muzzle_ == null /* must have a gun */) {
                 return;
             }
