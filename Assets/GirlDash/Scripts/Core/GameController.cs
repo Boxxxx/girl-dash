@@ -121,6 +121,8 @@ namespace GirlDash {
 
         #region Unity Callbacks
         void Awake() {
+            Application.targetFrameRate = Consts.kFps;
+
             InitRuntimeConsts();
             RegisterEvents();
 
@@ -180,7 +182,7 @@ namespace GirlDash {
         void OnGUI() {
             GUI.color = Color.red;
             GUI.Label(new Rect(0, 0, 100, 50), state.ToString());
-            GUI.Label(new Rect(0, 50, 100, 50), string.Format("HP: {0}", playerController.hp));
+            GUI.Label(new Rect(0, 50, 200, 50), string.Format("HP: {0}\nProgress: {1}", playerController.hp, progress));
         }
         #endregion
     }
