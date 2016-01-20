@@ -62,15 +62,15 @@ namespace GirlDash {
         }
 
         #region Game Events
-        public void OnEnemyBorn(Enemy enemy) {
-            enemy_queue_.NewEnemy(enemy);
+        public void OnEnemyBorn(object[] args) {
+            enemy_queue_.NewEnemy(args[0] as Enemy);
         }
-        public void OnEnemyInView(Enemy enemy) {
+        public void OnEnemyInView(object[] args) {
         }
-        public void OnEnemyAction(Enemy enemy) {
+        public void OnEnemyAction(object[] args) {
         }
-        public void OnEnemyDestroy(Enemy enemy) {
-            enemy_queue_.RemoveEnemy(enemy);
+        public void OnEnemyDestroy(object[] args) {
+            enemy_queue_.RemoveEnemy(args[0] as Enemy);
         }
         #endregion
 
@@ -105,8 +105,25 @@ namespace GirlDash {
         }
         #endregion
 
+        #region Private & Proected Methods
+        private void InitRuntimeConsts() {
+            RuntimeConsts.groundLayer = LayerMask.NameToLayer(Consts.kGroundLayer);
+            RuntimeConsts.groundLayerMask = 1 << LayerMask.NameToLayer(Consts.kGroundLayer);
+        }
+
+        private void RegisterEvents() {
+            EventPool.Instance.On(Events.OnEnemyBorn, OnEnemyBorn);
+            EventPool.Instance.On(Events.OnEnemyAction, OnEnemyAction);
+            EventPool.Instance.On(Events.OnEnemyInView, OnEnemyInView);
+            EventPool.Instance.On(Events.OnEnemyDestroy, OnEnemyDestroy);
+        }
+        #endregion
+
         #region Unity Callbacks
         void Awake() {
+            InitRuntimeConsts();
+            RegisterEvents();
+
             Register(PoolManager.Instance);
             Register(mapManager);
             Register(cameraController);

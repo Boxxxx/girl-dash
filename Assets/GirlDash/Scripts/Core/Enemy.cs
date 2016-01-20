@@ -51,7 +51,7 @@ namespace GirlDash {
             is_action_ = false;
             is_visible_ = false;
 
-            GameController.Instance.OnEnemyBorn(this);
+            EventPool.Instance.Emit(Events.OnEnemyBorn, this);
         }
 
         public void RecycleSelf() {
@@ -62,9 +62,17 @@ namespace GirlDash {
             PoolManager.Deallocate(this);
         }
 
+        protected override void HitByDamageArea(DamageArea damage_area) {
+            if (!is_visible_) {
+                // Invincible when not visible
+                return;
+            }
+            base.HitByDamageArea(damage_area);
+        }
+
         protected abstract void Action();
         protected virtual void OnVisible() {
-            GameController.Instance.OnEnemyAction(this);
+            EventPool.Instance.Emit(Events.OnEnemyInView, this);
         }
 
         // The action logic of an enemy, this should be replaced with a behaviour machine.
@@ -77,7 +85,7 @@ namespace GirlDash {
         }
 
         protected override void OnDied() {
-            GameController.Instance.OnEnemyDestroy(this);
+            EventPool.Instance.Emit(Events.OnEnemyDestroy, this);
             gameObject.SetActive(false);
         }
 
@@ -85,13 +93,15 @@ namespace GirlDash {
             bullet.InitDamage(atk, DamageArea.DamageGroup.Enemy);
         }
 
-        void Update() {
+        protected override void Update() {
+            base.Update();
+
             if (!is_visible_ && IsVisible) {
                 is_visible_ = true;
                 OnVisible();
             }
             if (!is_action_ && CheckActive()) {
-                GameController.Instance.OnEnemyAction(this);
+                EventPool.Instance.Emit(Events.OnEnemyAction, this);
 
                 is_action_ = true;
                 Action();

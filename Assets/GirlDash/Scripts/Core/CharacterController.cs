@@ -162,7 +162,7 @@ namespace GirlDash {
         }
 
         private bool GroundedTest() {
-            return Physics2D.Linecast(transform.position, groundChecker.position, ground_layermask_);
+            return Physics2D.Linecast(transform.position, groundChecker.position, RuntimeConsts.groundLayerMask);
         }
 
         private void Flip() {
@@ -214,14 +214,7 @@ namespace GirlDash {
             last_y_speed_ = rigidbody2D_.velocity.y;
         }
 
-        private void SyncSkeletonPositions() {
-            if (muzzle_ != null) {
-                var bone = skeleton_animator_.skeleton.Data.FindBone("muzzle");
-                Debug.Log(string.Format("position: {0}, {1}", bone.x, bone.y));
-            }
-        }
-
-        protected void HitByDamageArea(DamageArea damage_area) {
+        protected virtual void HitByDamageArea(DamageArea damage_area) {
             if (hit_damagearea_ids.Contains(damage_area.uniqueId)) {
                 // Saint Seiya will never be hit by the same damage twice!
                 return;
@@ -242,7 +235,6 @@ namespace GirlDash {
 
         #region Unity Functions
         protected virtual void Awake() {
-            ground_layermask_ = 1 << LayerMask.NameToLayer(Consts.kGroundLayer);
             animator_ = GetComponent<Animator>();
             skeleton_animator_ = GetComponent<SkeletonAnimator>();
             rigidbody2D_ = GetComponent<Rigidbody2D>();
@@ -262,9 +254,7 @@ namespace GirlDash {
             FallUpdate();
         }
 
-        protected virtual void Update() {
-            SyncSkeletonPositions();
-        }
+        protected virtual void Update() { }
 
         protected virtual void OnTriggerEnter2D(Collider2D other) {
             if (invincible) {

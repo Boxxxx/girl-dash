@@ -43,5 +43,11 @@ namespace GirlDash {
         private void DestroySelf() {
             PoolManager.Deallocate(gameObject);
         }
+
+        void OnTriggerEnter2D(Collider2D other) {
+            if (other.gameObject.layer == RuntimeConsts.groundLayer) {
+                DestroySelf();
+            }
+        }
     }
 }

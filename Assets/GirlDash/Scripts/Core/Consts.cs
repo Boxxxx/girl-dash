@@ -8,6 +8,14 @@ namespace GirlDash {
         public static readonly string kDamageAreaLayer = "DamageArea";
     }
 
+    /// <summary>
+    /// Consts that is filled runtime by GameController.
+    /// </summary>
+    public static class RuntimeConsts {
+        public static int groundLayer;
+        public static int groundLayerMask;
+    }
+
     public static class ResourceNames {
         public static readonly string kRifleBullet = "RifleBullet";
     }
