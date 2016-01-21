@@ -49,7 +49,13 @@ namespace GirlDash {
         }
 
         public float jumpForce {
-            get { return character_data_.jumpForce; }
+            get { return character_data_.jumpInitForce; }
+        }
+        public float jumpCooldown {
+            get { return current_jump_cooldown_; }
+        }
+        public float fireCooldown {
+            get { return muzzle_ == null ? 0 : muzzle_.fireCooldown; }
         }
 
         public int atk {
@@ -94,8 +100,11 @@ namespace GirlDash {
         private int hp_ = 0;
         private bool is_face_right_ = false;
         private bool cached_jump_trigger_ = false;
+        private bool is_falling_ = false;
         private float last_y_speed_ = 0f;
         private float move_axis_ = 0f;
+        private int current_jump_counter_ = 0;
+        private float current_jump_cooldown_ = 0;
 
         private HashSet<int> hit_damagearea_ids = new HashSet<int>();
         private int damagearea_layer_mask_;
@@ -116,8 +125,10 @@ namespace GirlDash {
             }
 
             if (isGrounded) {
-                cached_jump_trigger_ = true;
+                // If it's on ground now, clear the jump counter;
+                current_jump_counter_ = 0;
             }
+            cached_jump_trigger_ = true;
         }
 
         public void Move(float axis) {
@@ -163,6 +174,14 @@ namespace GirlDash {
             }
         }
 
+        protected void Clear() {
+            cached_jump_trigger_ = false;
+            last_y_speed_ = 0;
+            move_axis_ = 0;
+            current_jump_counter_ = 0;
+            current_jump_cooldown_ = 0;
+        }
+
         private bool GroundedTest() {
             return Physics2D.Linecast(transform.position, groundChecker.position, RuntimeConsts.groundLayerMask);
         }
@@ -202,20 +221,36 @@ namespace GirlDash {
         }
 
         private void JumpUpdate() {
-            if (cached_jump_trigger_) {
-                ResetActionTrigger(AnimatorParameters.Fall);
-                SetActionTrigger(AnimatorParameters.Jump);
-                rigidbody2D_.AddForce(new Vector2(0f, jumpForce));
-
+            if (cached_jump_trigger_ && current_jump_cooldown_ < Consts.kSoftEps) {
                 cached_jump_trigger_ = false;
+                if (current_jump_counter_ < character_data_.maxJumpCnt) {
+                    ResetActionTrigger(AnimatorParameters.Fall);
+                    if (current_jump_counter_ == 0) {
+                        SetActionTrigger(AnimatorParameters.Jump);
+                        rigidbody2D_.AddForce(new Vector2(0f, jumpForce));
+                    } else {
+                        Vector2 velcoity = rigidbody2D_.velocity;
+                        velcoity.y = character_data_.doubleJumpSpeed;
+                        rigidbody2D_.velocity = velcoity;
+                    }
+                    
+                    current_jump_counter_++;
+                }
             }
         }
 
         private void FallUpdate() {
             if (isGrounded) {
+                if (is_falling_) {
+                    is_falling_ = false;
+                    // Set cooldown of jump only when the last jump finished.
+                    current_jump_cooldown_ = character_data_.jumpCooldown;
+                }
                 return;
             }
             if (last_y_speed_ >= 0 && rigidbody2D_.velocity.y < 0) {
+                is_falling_ = true;
+                ResetActionTrigger(AnimatorParameters.Jump);
                 SetActionTrigger(AnimatorParameters.Fall);
             }
             last_y_speed_ = rigidbody2D_.velocity.y;
@@ -261,7 +296,11 @@ namespace GirlDash {
             FallUpdate();
         }
 
-        protected virtual void Update() { }
+        protected virtual void Update() {
+            if (current_jump_cooldown_ > 0) {
+                current_jump_cooldown_ = Mathf.Max(0, current_jump_cooldown_ - Time.deltaTime);
+            }
+        }
 
         protected virtual void OnTriggerEnter2D(Collider2D other) {
             if (invincible) {

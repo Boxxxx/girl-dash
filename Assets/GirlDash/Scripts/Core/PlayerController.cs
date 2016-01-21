@@ -98,6 +98,7 @@ namespace GirlDash {
                 return;
             }
 
+            base.Update();
             if (fire_cooldown_ > 0) {
                 fire_cooldown_ = Mathf.Max(0, fire_cooldown_ - Time.deltaTime);
             }

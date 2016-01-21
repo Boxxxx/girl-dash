@@ -182,7 +182,10 @@ namespace GirlDash {
         void OnGUI() {
             GUI.color = Color.red;
             GUI.Label(new Rect(0, 0, 100, 50), state.ToString());
-            GUI.Label(new Rect(0, 50, 200, 50), string.Format("HP: {0}\nProgress: {1}", playerController.hp, progress));
+            GUI.Label(
+                new Rect(0, 50, 200, 50),
+                string.Format("HP: {0}\nProgress: {1}\nJump CD: {2}, Fire CD: {3}",
+                playerController.hp, progress, playerController.jumpCooldown, playerController.fireCooldown));
         }
         #endregion
     }

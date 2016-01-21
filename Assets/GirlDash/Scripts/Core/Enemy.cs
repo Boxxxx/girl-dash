@@ -29,7 +29,8 @@ namespace GirlDash {
 
             character_data.name = enemy_data.enemyType.ToString();
             character_data.moveSpeed = moveSpeed;
-            character_data.jumpForce = jumpForce;
+            character_data.jumpInitForce = jumpForce;
+            character_data.maxJumpCnt = 1;
             character_data.atk = enemy_data.fire_atk;
             character_data.hp = enemy_data.hp;
 
@@ -40,6 +41,7 @@ namespace GirlDash {
                 muzzle_.Reset();
             }
 
+            Clear();
             // Faces left
             SetFaceRight(false, true /* force set */);
             transform.parent = parent_transform;
