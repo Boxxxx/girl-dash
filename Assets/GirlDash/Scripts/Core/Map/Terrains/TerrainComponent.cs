@@ -4,7 +4,6 @@ namespace GirlDash.Map {
     public abstract class TerrainComponent : MonoBehaviour {
         public const string kGraphicsTransformName = "graphics";
 
-        public TerrainStyle style;
         public Transform graphics;
 
         public Rect bound { get; private set; }
@@ -16,7 +15,7 @@ namespace GirlDash.Map {
         }
         private bool is_dirty = false;
 
-        public void BuildSelf(TerrainData data, Transform parent_tranform) {
+        public void BuildSelf(TerrainData data, TerrainStyle style, Transform parent_tranform) {
             if (is_dirty) {
                 Cleanup();
             }

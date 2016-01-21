@@ -16,6 +16,7 @@ namespace GirlDash.Map {
         public TerrainType terrainType = TerrainType.Ground;
         public InteractiveType interactiveType = InteractiveType.Solid;
 
+        // Consider this terrain compoent take the whole region area, from topleft to bottomright.
         public MapRect region;
         public MapVector center {
             get { return new MapVector(region.x + (region.width >> 1), region.y + (region.height >> 1)); }
@@ -33,7 +34,13 @@ namespace GirlDash.Map {
         }
         public EnemyType enemyType = EnemyType.Scout;
         public int hp = 1;
-        public int atk = 1;
+        public int fire_atk = 1;
+        public int hit_atk = 1;
+
+        // Since the MapVector is always integer and the ground component takes 1x1 block from integer coordinate,
+        // if we want to put a enemy in the center of a ground block, it must have decimal coordinate, which is difficult to maintain.
+        // Thus, we only set spawnPosition to integer coordinate,
+        // however what it really means is the center of the 1 unit start from this spawnPosition.
         public MapVector spawnPosition;
     }
 
@@ -63,10 +70,6 @@ namespace GirlDash.Map {
         /// </summary>
         public MapVector sightRange;
         /// <summary>
-        /// width of map area, the left and right border will be blocked by wall.
-        /// </summary>
-        public MapValue width;
-        /// <summary>
         /// deadHeight of map area, there will be a deadArea at this height
         /// </summary>
         public MapValue deadHeight;
@@ -78,5 +81,17 @@ namespace GirlDash.Map {
         /// Therefore, we can have unlimited map blocks.
         /// </summary>
         public List<BlockData> blocks = new List<BlockData>();
+
+        public MapValue rightmost {
+            get { return blocks.Count > 0 ? blocks[blocks.Count - 1].bound.max : 0; }
+        }
+
+        public MapValue leftmost {
+            get { return blocks.Count < 0 ? blocks[0].bound.min : 0; }
+        }
+
+        public MapValue width {
+            get { return blocks.Count > 0 ? blocks[blocks.Count - 1].bound.max - blocks[0].bound.min : 0; }
+        }
     }
 }

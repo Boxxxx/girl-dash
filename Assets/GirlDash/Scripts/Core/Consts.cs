@@ -3,7 +3,18 @@ using System.Collections;
 
 namespace GirlDash {
     public static class Consts {
+        public const float kSoftEps = 1e-5f;
+        public const int kFps = 60;
         public static readonly string kGroundLayer = "Ground";
+        public static readonly string kDamageAreaLayer = "DamageArea";
+    }
+
+    /// <summary>
+    /// Consts that is filled runtime by GameController.
+    /// </summary>
+    public static class RuntimeConsts {
+        public static int groundLayer;
+        public static int groundLayerMask;
     }
 
     public static class ResourceNames {

@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace GirlDash.Map {
     public class MapBlock {
         public List<TerrainComponent> terrains = new List<TerrainComponent>();
+        public List<Enemy> enemies = new List<Enemy>();
 
         public BlockData blockData {
             get; private set;
@@ -12,61 +14,83 @@ namespace GirlDash.Map {
             get { return blockData.bound; }
         }
 
-        public MapBlock(BlockData block_data, Transform parent_transform, MapFactory factory) {
-            blockData = block_data;
-
-            for (int i = 0; i < blockData.terrains.Length; i++) {
-                var terrain = factory.CreateTerrain(blockData.terrains[i]);
-                terrain.BuildSelf(blockData.terrains[i], parent_transform);
-                terrains.Add(terrain);
-            }
+        public Transform folder {
+            get; private set;
         }
 
-        public void RecycleSelf() {
+        public MapBlock(BlockData block_data, Transform parent_transform, MapFactory factory) {
+            blockData = block_data;
+            folder = parent_transform;
+
+            for (int i = 0; i < blockData.terrains.Length; i++) {
+                var terrain = factory.CreateTerrain(blockData.terrains[i], parent_transform);
+                terrains.Add(terrain);
+            }
+
+            for (int i = 0; i< blockData.enemies.Length; i++) {
+                var enemy = factory.CreateEnemy(blockData.enemies[i], parent_transform);
+                enemies.Add(enemy);
+            }
+
+        }
+
+        public void RecycleSelf(MapManager manager) {
             for (int i = 0; i < terrains.Count; i++) {
                 terrains[i].RecycleSelf();
             }
             terrains.Clear();
+            for (int i = 0; i < enemies.Count; i++) {
+                enemies[i].RecycleSelf();
+            }
+            enemies.Clear();
+            if (folder != null) {
+                manager.RecycleFolder(folder);
+            }
         }
     }
 
     [RequireComponent(typeof(MapFactory))]
-    public class MapManager : MonoBehaviour {
+    public class MapManager : MonoBehaviour, IGameComponent {
         [Tooltip("Minimum of number of blocks that is cached.")]
         public int minBlocksToCacheup = 3;
-        public Transform terrainFolder;
+        public Transform blockFolder;
+        public Transform fixObjFolder;
 
         /// <summary>
         /// What's really needed here is a dequeue, but we have only a couple of blocks (less than 10) in this group,
         /// so we just use a list to simulate it.
         /// </summary>
         private List<MapBlock> map_blocks = new List<MapBlock>();
+        private Queue<Transform> unused_folder_queue_ = new Queue<Transform>();
+        private EnemyQueue enemy_queue_ = new EnemyQueue(); 
 
         public MapData mapData { get; private set; }
 
         public float progress { get; private set; }
         public float sightRange { get; private set; }
 
-        private MapFactory map_factory;
-        private Collider2D dead_area;
+        private BoxCollider2D dead_area_;
+
+        private MapFactory map_factory_;
+        private IMapGenerator map_generator_;
         private int next_block_index_;
 
         private void InitBoundingColliders() {
             MapUtils.CreateBoxCollider(
-                "WallLeft", terrainFolder,
-                new MapRect(-MapConstants.kWallThickness, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
+                "WallLeft", fixObjFolder,
+                new MapRect(-MapConstants.kWallThickness + mapData.leftmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
             MapUtils.CreateBoxCollider(
-                "WallRight", terrainFolder,
-                new MapRect(mapData.width, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
+                "WallRight", fixObjFolder,
+                new MapRect(mapData.rightmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
         }
         private void InitDeadArea() {
-            dead_area = MapUtils.CreateBoxCollider(
-                "DeadArea", terrainFolder,
-                new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.width, MapConstants.kWallThickness),
+            dead_area_ = MapUtils.CreateBoxCollider(
+                "DeadArea", fixObjFolder,
+                new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.rightmost, MapConstants.kWallThickness),
                 false /* is_trigger */);
-            dead_area.gameObject.layer = LayerMask.NameToLayer(Consts.kGroundLayer);
+            dead_area_.gameObject.layer = LayerMask.NameToLayer(Consts.kGroundLayer);
         }
         private void InitialBuild() {
             InitBoundingColliders();
@@ -84,12 +108,11 @@ namespace GirlDash.Map {
 
             // Clear all blocks
             for (int i = 0; i < map_blocks.Count; i++) {
-                map_blocks[i].RecycleSelf();
+                RecycleBlock(map_blocks[i]);
             }
             map_blocks.Clear();
 
-            // Clear all folders
-            ClearFolder(terrainFolder);
+            enemy_queue_.Clear();
 
             // Initial build
             InitialBuild();
@@ -100,6 +123,24 @@ namespace GirlDash.Map {
                 progress = new_progress;
                 RefreshBlocks();
             }
+        }
+
+        public IEnumerator Load(IMapGenerator map_generator) {
+            map_generator_ = map_generator;
+            map_factory_ = GetComponent<MapFactory>();
+
+            yield return StartCoroutine(map_generator_.Generate());
+
+            Reset(map_generator_.GetMap());
+        }
+
+        public void GameStart() { }
+
+        public void GameOver() { }
+
+        public void RecycleFolder(Transform folder) {
+            folder.gameObject.SetActive(false);
+            unused_folder_queue_.Enqueue(folder);
         }
 
         private void RefreshBlocks() {
@@ -116,7 +157,7 @@ namespace GirlDash.Map {
                         string.Format("[MapManger] Going to recycle the blocks at [{0}, {1}], the progress now is {2}",
                         block.bound.min, block.bound.max, progress));
                     // If this leftmost block is out of sight, recycle it.
-                    block.RecycleSelf();
+                    block.RecycleSelf(this);
                     map_blocks.RemoveAt(0);
                 } else {
                     // Otherwise, all remains are in sight.
@@ -152,8 +193,14 @@ namespace GirlDash.Map {
             if (next_block_index_ >= mapData.blocks.Count) {
                 return false;
             }
-            map_blocks.Add(new MapBlock(mapData.blocks[next_block_index_++], terrainFolder, map_factory));
+            map_blocks.Add(
+                new MapBlock(mapData.blocks[next_block_index_], NextCleanFolder("Block_" + next_block_index_), map_factory_));
+            next_block_index_++;
             return true;
+        }
+
+        private void RecycleBlock(MapBlock map_block) {
+            map_block.RecycleSelf(this);
         }
 
         private void ClearFolder(Transform folder) {
@@ -163,37 +210,34 @@ namespace GirlDash.Map {
             }
         }
 
-        void Awake() {
-            map_factory = GetComponent<MapFactory>();
-
-            Reset(CreateMockMapData());
+        private Transform NextCleanFolder(string name) {
+            Transform folder;
+            if (unused_folder_queue_.Count > 0) {
+                folder = unused_folder_queue_.Dequeue();
+            } else {
+                folder = NewFolder();
+            }
+            folder.name = name;
+            folder.gameObject.SetActive(true);
+            return folder;
         }
 
         /// <summary>
-        /// For test only
+        /// Should not be called at runtime.
         /// </summary>
-        private MapData CreateMockMapData() {
-            var options = new SimpleMapBuilder.Options();
-            options.expectedBlockWidth = 15;
-            SimpleMapBuilder builder = new SimpleMapBuilder(options);
+        private Transform NewFolder() {
+            var folder = new GameObject("Cached Folder");
+            folder.transform.parent = blockFolder;
+            folder.transform.localPosition = Vector3.zero;
+            folder.gameObject.SetActive(false);
+            return folder.transform;
+        }
 
-            int num_ground = 100;
-            MapVector random_ground_width_range = new MapVector(3, 10);
-            MapVector random_ground_offset_range = new MapVector(0, 4);
-
-            builder.NewGround(
-                0, Random.Range(Mathf.Max(7, random_ground_width_range.x), random_ground_width_range.y));
-            for (int i = 1; i < num_ground; i++) {
-                var ground_data = builder.NewGround(
-                    Random.Range(random_ground_offset_range.x, random_ground_offset_range.y),
-                    Random.Range(random_ground_width_range.x, random_ground_width_range.y));
-                if (Random.value < 0.25f) {
-                    // 25% possibility to add a obstacle
-                    builder.AddObstacle(ground_data.region.width, Random.Range(1, 2), 0, 0);
-                }
+        void Awake() {
+            // Caches block folders, we cache twice the folder to avoid dynamically instantiate.
+            for (int i = 0; i < minBlocksToCacheup * 2; i++) {
+                unused_folder_queue_.Enqueue(NewFolder());
             }
-
-            return builder.BuildMap();
         }
     }
 }
