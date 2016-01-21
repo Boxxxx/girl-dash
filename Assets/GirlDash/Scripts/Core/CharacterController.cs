@@ -11,6 +11,7 @@ namespace GirlDash {
             public static readonly string Die = "die";
             public static readonly string Victory = "victory";
             public static readonly string Fire = "fire";
+            public static readonly string IsFiring = "is_firing";
             public static readonly string IsMove = "is_move";
             public static readonly string FireEvent = "fire";
         }

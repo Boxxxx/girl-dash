@@ -4,6 +4,8 @@ using System.Collections;
 namespace GirlDash {
     [RequireComponent(typeof(LineRenderer))]
     public class CrossHairs : MonoBehaviour {
+        private const float maxRotate = 30.0f * Mathf.Deg2Rad;
+
         [Tooltip("The radiance to rotate in 1 sec.")]
         public float rotateSpeed = 10f;
         private LineRenderer ray_;
@@ -33,6 +35,7 @@ namespace GirlDash {
             }
 
             float angle = Mathf.Atan2(target_direction_.y, target_direction_.x);
+            angle = Mathf.Clamp(angle, -maxRotate, maxRotate);
             if (Mathf.Abs(last_angle_ - angle) > Consts.kSoftEps) {
                 // If they are not close enough, rotate smoothly with rotateSpeed.
                 angle = Mathf.Lerp(last_angle_, angle, rotateSpeed * Time.deltaTime / Mathf.Abs(angle - last_angle_));

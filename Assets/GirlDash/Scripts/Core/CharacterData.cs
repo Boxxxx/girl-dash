@@ -9,5 +9,6 @@ namespace GirlDash {
         public int hp = 100;
         public float moveSpeed = 5.0f;
         public float jumpForce = 700.0f;
+        public float fireCooldown = 0.25f;
     }
 }

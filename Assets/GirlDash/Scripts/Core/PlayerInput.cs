@@ -11,11 +11,11 @@ namespace GirlDash {
         public bool enableFire = true;
         public bool enableMove = false;
 
-        private CharacterController controller_;
+        private PlayerController controller_;
         private float last_horiz_axis_ = 0;
 
         void Start() {
-            controller_ = GetComponent<CharacterController>();
+            controller_ = GetComponent<PlayerController>();
         }
 
         void Update() {
@@ -24,6 +24,8 @@ namespace GirlDash {
                 // Fire logic
                 if (Input.GetButtonDown(InputEvents.kFire)) {
                     controller_.Fire();
+                } else {
+                    controller_.HoldFire(Input.GetButton(InputEvents.kFire));
                 }
             }
 
