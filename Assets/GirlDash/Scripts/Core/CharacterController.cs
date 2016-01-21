@@ -54,9 +54,6 @@ namespace GirlDash {
         public float jumpCooldown {
             get { return current_jump_cooldown_; }
         }
-        public float fireCooldown {
-            get { return muzzle_ == null ? 0 : muzzle_.fireCooldown; }
-        }
 
         public int atk {
             get { return character_data_.atk; }

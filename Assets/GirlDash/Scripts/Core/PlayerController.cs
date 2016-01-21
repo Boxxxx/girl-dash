@@ -7,11 +7,15 @@ namespace GirlDash {
     public class PlayerController : CharacterController, IGameComponent {
         private bool running_ = false;
         private bool is_firing_ = false;
-        private float fire_cooldown_ = 0;
+        private float current_fire_cooldown_ = 0;
         // Since we want firing just begins at event time, so we must cache this bool,
         // when recevied a fire event, we shoot bullet.
         // This will be refresh every 'fire_cooldown' if the player keeps hold the fire button.
         private bool ready_for_next_shoot_ = true;
+
+        public float fireCooldown {
+            get { return current_fire_cooldown_; }
+        }
 
         public IEnumerator Load(CharacterData character_data) {
             Reset(character_data);
@@ -21,7 +25,7 @@ namespace GirlDash {
         public void GameStart() {
             running_ = true;
             is_firing_ = false;
-            fire_cooldown_ = 0;
+            current_fire_cooldown_ = 0;
             ready_for_next_shoot_ = true;
         }
 
@@ -31,7 +35,7 @@ namespace GirlDash {
         }
 
         public override void Fire() {
-            if (!isAlive || muzzle_ == null /* must have a gun */ || fire_cooldown_ > Consts.kSoftEps /* gun must be cooldown */) {
+            if (!isAlive || muzzle_ == null /* must have a gun */ || current_fire_cooldown_ > Consts.kSoftEps /* gun must be cooldown */) {
                 return;
             }
 
@@ -73,7 +77,7 @@ namespace GirlDash {
 
         protected virtual void OnFire() {
             if (ready_for_next_shoot_) {
-                fire_cooldown_ = character_data_.fireCooldown;
+                current_fire_cooldown_ = character_data_.fireCooldown;
                 ready_for_next_shoot_ = false;
                 muzzle_.Fire();
             }
@@ -99,10 +103,10 @@ namespace GirlDash {
             }
 
             base.Update();
-            if (fire_cooldown_ > 0) {
-                fire_cooldown_ = Mathf.Max(0, fire_cooldown_ - Time.deltaTime);
+            if (current_fire_cooldown_ > 0) {
+                current_fire_cooldown_ = Mathf.Max(0, current_fire_cooldown_ - Time.deltaTime);
             }
-            if (is_firing_ && fire_cooldown_ < Consts.kSoftEps) {
+            if (is_firing_ && current_fire_cooldown_ < Consts.kSoftEps) {
                 ready_for_next_shoot_ = true;
             }
         }

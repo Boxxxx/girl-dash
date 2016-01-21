@@ -14,12 +14,8 @@ namespace GirlDash {
 
         private CharacterController controller_;
         private int num_bullets_to_fire_ = 0;
-        private float current_fire_cooldown_ = 0;
+        private float fire_time_countdown_ = 0;
         private Action<Bullet> on_new_bullet_;
-
-        public float fireCooldown {
-            get { return current_fire_cooldown_; }
-        }
 
         public void Fire() {
             if (numBulletsPerShoot == 0) {
@@ -28,10 +24,10 @@ namespace GirlDash {
             Shoot();
             if (numBulletsPerShoot > 1) {
                 num_bullets_to_fire_ = numBulletsPerShoot - 1;
-                current_fire_cooldown_ = fireTimePeriod;
+                fire_time_countdown_ = fireTimePeriod;
             } else {
                 num_bullets_to_fire_ = 0;
-                current_fire_cooldown_ = 0;
+                fire_time_countdown_ = 0;
             }
         }
 
@@ -71,16 +67,16 @@ namespace GirlDash {
 
         public void Reset() {
             num_bullets_to_fire_ = 0;
-            current_fire_cooldown_ = 0;
+            fire_time_countdown_ = 0;
         }
 
         void Update() {
             while (num_bullets_to_fire_ > 0) {
-                current_fire_cooldown_ -= Time.deltaTime;
-                if (current_fire_cooldown_ <= 0) {
+                fire_time_countdown_ -= Time.deltaTime;
+                if (fire_time_countdown_ <= 0) {
                     Shoot();
                     num_bullets_to_fire_--;
-                    current_fire_cooldown_ += fireTimePeriod;
+                    fire_time_countdown_ += fireTimePeriod;
                 } else {
                     break;
                 }
