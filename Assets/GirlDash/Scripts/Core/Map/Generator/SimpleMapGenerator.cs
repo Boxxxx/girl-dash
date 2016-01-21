@@ -22,11 +22,11 @@ namespace GirlDash.Map {
             builder_.Reset();
 
             int num_ground = 100;
-            MapVector random_ground_width_range = new MapVector(3, 20);
+            MapVector random_ground_width_range = new MapVector(4, 20);
             MapVector random_ground_offset_range = new MapVector(1, 4);
 
             builder_.NewGround(
-                0, Mathf.Max(12, random_.Next(random_ground_width_range.x, random_ground_width_range.y)));
+                0, 0, Mathf.Max(12, random_.Next(random_ground_width_range.x, random_ground_width_range.y)));
 
             // Try to add a test enemy
             builder_.AddEnemy(EnemyData.EnemyType.Dog, 10, 1, 1, 1);
@@ -34,12 +34,9 @@ namespace GirlDash.Map {
             for (int i = 1; i < num_ground; i++) {
                 var ground_data = builder_.NewGround(
                     random_.Next(random_ground_offset_range.x, random_ground_offset_range.y),
-                    random_.Next(random_ground_width_range.x, random_ground_width_range.y));
-                if (random_.NextDouble() < 0.25) {
-                    // 25% possibility to add a obstacle
-                    builder_.AddObstacle(ground_data.region.width, random_.Next(1, 2), 0, 0);
-                }
-                else if (random_.NextDouble() < 0.5) {
+                    random_.NextDouble() < 0.25 ? 1 : 0 /* 25% possibility to be a high ground */,
+                    random_.Next(random_ground_width_range.x, random_ground_width_range.y / 2 * 2 /* round down */));
+                if (random_.NextDouble() < 0.5) {
                     builder_.AddEnemy(EnemyData.EnemyType.Dog, random_.Next(0, ground_data.region.width), 1, 1, 1);
                 }
             }

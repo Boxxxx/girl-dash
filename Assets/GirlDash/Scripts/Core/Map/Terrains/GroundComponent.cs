@@ -5,7 +5,7 @@ namespace GirlDash.Map {
     [RequireComponent(typeof(BoxCollider2D))]
     public class GroundComponent : TerrainComponent {
         private BoxCollider2D collider_;
-        private List<Transform> sprites_ = new List<Transform>();
+        private List<SpriteRenderer> tiles_ = new List<SpriteRenderer>();
         
         protected override Collider2D BuildCollider(TerrainData data) {
             Rect region_rect = (Rect)data.region;
@@ -13,15 +13,35 @@ namespace GirlDash.Map {
             collider_.size = region_rect.size;
             return collider_;
         }
+
+        // This building method will firstly try to join N loop tiles and a left and right tile,
+        // so that the total width is close but smaller than the actual size.
+        // If the rest size is equal to or greater than 'minimumValidLoopTile', we will put another loop tile.
         protected override void BuildGraphics(TerrainData data, TerrainStyle style) {
-            for (int i = 0; i < data.region.width; i++) {
-                for (int j = 0; j < data.region.height; j++) {
-                    var sprite = PoolManager.Allocate(style.groundUnitSprite);
-                    
-                    sprites_.Add(sprite);
-                    sprite.transform.parent = graphics;
-                    sprite.transform.localPosition = (Vector2)(new MapVector(i, -j));
-                }
+            var ground_style = style.groundStyle;
+            if (!ground_style.isValid) {
+                Debug.LogError("GroundStyle is not valid!");
+                return;
+            }
+
+            float loop_ratio = (data.region.width - ground_style.edgeSize) / ground_style.loopSize;
+            int loop_cnt = (int)Mathf.Ceil(loop_ratio - ground_style.minimumValidLoopTile);
+
+            float accumulate_size = 0;
+            tiles_.Clear();
+
+            tiles_.Add(CreateGroundTile(ground_style.leftTile, ground_style, accumulate_size));
+            accumulate_size += ground_style.leftEdgeSize;
+            for (int i = 0; i < loop_cnt; i++) {
+                tiles_.Add(CreateGroundTile(ground_style.RandomSelectLoopTile(), ground_style, accumulate_size));
+                accumulate_size += ground_style.loopSize;
+            }
+            tiles_.Add(CreateGroundTile(ground_style.rightTile, ground_style, accumulate_size));
+            accumulate_size += ground_style.rightEdgeSize;
+
+            float padding_on_edge = (data.region.width - accumulate_size) * 0.5f;
+            for (int i = 0; i < tiles_.Count; i++) {
+                tiles_[i].transform.position += new Vector3(padding_on_edge, 0, 0);
             }
         }
 
@@ -33,15 +53,23 @@ namespace GirlDash.Map {
         protected override void Cleanup() {
             base.Cleanup();
 
-            for (int i = 0; i < sprites_.Count; i++) {
-                PoolManager.Deallocate(sprites_[i]);
+            for (int i = 0; i < tiles_.Count; i++) {
+                PoolManager.Deallocate(tiles_[i]);
             }
-            sprites_.Clear();
+            tiles_.Clear();
         }
 
         protected override void Awake() {
             base.Awake();
             collider_ = GetComponent<BoxCollider2D>();
+        }
+
+        private SpriteRenderer CreateGroundTile(SpriteRenderer tile, TerrainStyle.GroundStyle style, float offset) {
+            var new_tile = PoolManager.Allocate(tile);
+            new_tile.transform.parent = graphics;
+            new_tile.transform.localScale = style.scale;
+            new_tile.transform.localPosition = new Vector3(offset, 0, 0);
+            return new_tile;
         }
     }
 }

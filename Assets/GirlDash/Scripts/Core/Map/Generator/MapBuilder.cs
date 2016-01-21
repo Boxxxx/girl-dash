@@ -151,7 +151,7 @@ namespace GirlDash.Map {
 
         public class Options {
             public int expectedBlockWidth = 12;
-            public int groundHeight = 1;
+            public int groundHeight = 2;
             public int deadHeight = -1;
         }
 
@@ -193,14 +193,14 @@ namespace GirlDash.Map {
             current_ground_ = null;
         }
 
-        public TerrainData NewGround(int offset, int width) {
+        public TerrainData NewGround(int offset_x, int offset_y, int width) {
             TerrainData terrian_data = new TerrainData();
             terrian_data.terrainType = TerrainData.TerrainType.Ground;
             terrian_data.interactiveType = TerrainData.InteractiveType.Solid;
             if (current_ground_ == null) {
-                terrian_data.region = new MapRect(offset, -options_.groundHeight, width, options_.groundHeight);
+                terrian_data.region = new MapRect(offset_x, -options_.groundHeight + offset_y, width, options_.groundHeight);
             } else {
-                terrian_data.region = new MapRect(current_ground_.region.xMax + offset, -options_.groundHeight, width, options_.groundHeight);
+                terrian_data.region = new MapRect(current_ground_.region.xMax + offset_x, -options_.groundHeight + offset_y, width, options_.groundHeight);
             }
             grounds_.Add(terrian_data);
 

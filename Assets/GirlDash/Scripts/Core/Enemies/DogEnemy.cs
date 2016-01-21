@@ -5,8 +5,17 @@ namespace GirlDash {
     public class DogEnemy : Enemy {
         public const float kActiveDistance = 10;
 
+        // Overrides for avoiding warning in unit, since dog has no fire trigger.
+        public override void Fire() {
+            if (!isAlive || muzzle_ == null /* must have a gun */) {
+                return;
+            }
+
+            muzzle_.Fire();
+            // No fire trigger for dog.
+        }
+
         protected override void Action() {
-            Debug.Log(name + " is in action!");
             StartCoroutine(JumpLogic());
         }
 

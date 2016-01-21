@@ -176,6 +176,10 @@ namespace GirlDash {
             OnActionTrigger(trigger);
         }
 
+        protected void ResetActionTrigger(string trigger) {
+            animator_.ResetTrigger(trigger);
+        }
+
         private void GroundedUpdate() {
             bool new_grounded = GroundedTest();
             if (new_grounded != isGrounded) {
@@ -199,6 +203,7 @@ namespace GirlDash {
 
         private void JumpUpdate() {
             if (cached_jump_trigger_) {
+                ResetActionTrigger(AnimatorParameters.Fall);
                 SetActionTrigger(AnimatorParameters.Jump);
                 rigidbody2D_.AddForce(new Vector2(0f, jumpForce));
 
