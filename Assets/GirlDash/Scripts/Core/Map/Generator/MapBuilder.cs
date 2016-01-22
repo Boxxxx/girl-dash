@@ -243,7 +243,7 @@ namespace GirlDash.Map {
         public MapData InitMapData() {
             MapData map_data = new MapData();
             map_data.deadHeight = Mathf.Min(-1, options_.deadHeight);
-            map_data.sightRange = new MapVector(MapValue.LowerBound(-11.36f), MapValue.UpperBound(11.36f));
+            map_data.sightRange = new MapVector(MapValue.LowerBound(-Consts.kScreenWidth), MapValue.UpperBound(Consts.kScreenWidth));
             return map_data;
         }
 

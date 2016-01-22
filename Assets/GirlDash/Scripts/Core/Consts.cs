@@ -5,6 +5,7 @@ namespace GirlDash {
     public static class Consts {
         public const float kSoftEps = 1e-5f;
         public const int kFps = 60;
+        public const float kScreenWidth = 11.36f;
         public static readonly string kGroundLayer = "Ground";
         public static readonly string kDamageAreaLayer = "DamageArea";
     }
