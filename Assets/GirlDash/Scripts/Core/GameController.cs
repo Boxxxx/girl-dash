@@ -107,8 +107,13 @@ namespace GirlDash {
 
         #region Private & Proected Methods
         private void InitRuntimeConsts() {
+            // Layer
             RuntimeConsts.groundLayer = LayerMask.NameToLayer(Consts.kGroundLayer);
             RuntimeConsts.groundLayerMask = 1 << LayerMask.NameToLayer(Consts.kGroundLayer);
+
+            // Screen size
+            Bounds screen_size = CameraController.Instance.GetCachedCameraBounds(true /* force to refresh */);
+            RuntimeConsts.initScreenSize = screen_size.size;
         }
 
         private void RegisterEvents() {

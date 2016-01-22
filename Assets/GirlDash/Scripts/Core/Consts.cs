@@ -5,7 +5,6 @@ namespace GirlDash {
     public static class Consts {
         public const float kSoftEps = 1e-5f;
         public const int kFps = 60;
-        public const float kScreenWidth = 11.36f;
         public static readonly string kGroundLayer = "Ground";
         public static readonly string kDamageAreaLayer = "DamageArea";
     }
@@ -14,6 +13,9 @@ namespace GirlDash {
     /// Consts that is filled runtime by GameController.
     /// </summary>
     public static class RuntimeConsts {
+        // The init screen width & height is calcualted at the begining of the game.
+        // We assume the screen resolution won't change during gameplay, but you should know it's possible.
+        public static Vector2 initScreenSize;
         public static int groundLayer;
         public static int groundLayerMask;
     }

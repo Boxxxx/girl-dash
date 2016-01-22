@@ -5,13 +5,9 @@ namespace GirlDash {
     public class CameraController : SingletonObject<CameraController>, IGameComponent {
         public Transform target;
         public float offsetX = 4f;
+        public new Camera camera;
 
-        private Camera camera_;
         private Bounds cached_bounds_;
-
-        public new Camera camera {
-            get { return camera_; }
-        }
 
         public void GameStart() { }
         public void GameOver() { }
@@ -23,12 +19,19 @@ namespace GirlDash {
             cached_bounds_.size = new Vector3(camera_height * screen_aspect, camera_height, 0);
         }
 
+        public Bounds GetCachedCameraBounds(bool force_to_refresh) {
+            if (force_to_refresh) {
+                RecalculateOrthographicBounds();
+            }
+            return cached_bounds_;
+        }
+
         /// <summary>
         /// If 'latest_bounds' is false, then it will use cached bounds to calculate visibility.
         /// Otherwise, it will recalculate the bounds immediately.
         /// </summary>
-        public bool CheckInView(Transform transform, bool latest_bounds) {
-            if (latest_bounds) {
+        public bool CheckInView(Transform transform, bool force_to_refresh) {
+            if (force_to_refresh) {
                 RecalculateOrthographicBounds();
             }
             return cached_bounds_.Contains(transform.position);
@@ -42,13 +45,6 @@ namespace GirlDash {
             var now_position = transform.position;
             now_position.x = target.position.x + offsetX;
             transform.position = now_position;
-        }
-
-        void Awake() {
-            camera_ = GetComponent<Camera>();
-            if (camera_ == null) {
-                camera_ = GetComponentInChildren<Camera>();
-            }
         }
 
         void Update() {

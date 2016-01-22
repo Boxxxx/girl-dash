@@ -51,6 +51,8 @@ namespace GirlDash.Map {
 
     [RequireComponent(typeof(MapFactory))]
     public class MapManager : MonoBehaviour, IGameComponent {
+        public bool showLog = true;
+
         [Tooltip("Minimum of number of blocks that is cached.")]
         public int minBlocksToCacheup = 3;
         public Transform blockFolder;
@@ -153,9 +155,11 @@ namespace GirlDash.Map {
             while (map_blocks.Count > 0) {
                 var block = map_blocks[0];
                 if (block.bound.max < left_bound) {
-                    Debug.Log(
-                        string.Format("[MapManger] Going to recycle the blocks at [{0}, {1}], the progress now is {2}",
-                        block.bound.min, block.bound.max, progress));
+                    if (showLog) {
+                        Debug.Log(
+                            string.Format("[MapManger] Going to recycle the blocks at [{0}, {1}], the progress now is {2}",
+                            block.bound.min, block.bound.max, progress));
+                    }
                     // If this leftmost block is out of sight, recycle it.
                     block.RecycleSelf(this);
                     map_blocks.RemoveAt(0);

@@ -23,7 +23,7 @@ namespace GirlDash.Map {
 
             int num_ground = 10000;
             MapVector random_ground_width_range = new MapVector(4, 20);
-            MapVector random_ground_offset_range = new MapVector(1, 4);
+            MapVector random_ground_offset_range = new MapVector(2, 6);
 
             builder_.NewGround(
                 0, 0, Mathf.Max(12, random_.Next(random_ground_width_range.x, random_ground_width_range.y)));
@@ -37,7 +37,7 @@ namespace GirlDash.Map {
                     random_.NextDouble() < 0.25 ? 1 : 0 /* 25% possibility to be a high ground */,
                     random_.Next(random_ground_width_range.x, random_ground_width_range.y / 2 * 2 /* round down */));
                 if (random_.NextDouble() < 0.5) {
-                    builder_.AddEnemy(EnemyData.EnemyType.Dog, random_.Next(0, ground_data.region.width), 1, 1, 1);
+                    builder_.AddEnemy(EnemyData.EnemyType.Dog, random_.Next(0, Mathf.Max(1, ground_data.region.width - 1)), 1, 1, 1);
                 }
             }
 

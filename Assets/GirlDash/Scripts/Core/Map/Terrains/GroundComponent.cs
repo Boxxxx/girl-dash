@@ -7,21 +7,21 @@ namespace GirlDash.Map {
         private BoxCollider2D collider_;
         private List<SpriteRenderer> tiles_ = new List<SpriteRenderer>();
         
-        protected override Collider2D BuildCollider(TerrainData data) {
+        protected override Collider2D BuildCollider(TerrainData data, float real_width) {
             Rect region_rect = (Rect)data.region;
-            collider_.offset = new Vector2(region_rect.width * 0.5f, -region_rect.height * 0.5f);
-            collider_.size = region_rect.size;
+            collider_.offset = new Vector2(real_width * 0.5f, -region_rect.height * 0.5f);
+            collider_.size = new Vector2(real_width, region_rect.height);
             return collider_;
         }
 
         // This building method will firstly try to join N loop tiles and a left and right tile,
         // so that the total width is close but smaller than the actual size.
         // If the rest size is equal to or greater than 'minimumValidLoopTile', we will put another loop tile.
-        protected override void BuildGraphics(TerrainData data, TerrainStyle style) {
+        protected override float BuildGraphics(TerrainData data, TerrainStyle style) {
             var ground_style = style.groundStyle;
             if (!ground_style.isValid) {
                 Debug.LogError("GroundStyle is not valid!");
-                return;
+                return 0;
             }
 
             float loop_ratio = (data.region.width - ground_style.edgeSize) / ground_style.loopSize;
@@ -39,10 +39,7 @@ namespace GirlDash.Map {
             tiles_.Add(CreateGroundTile(ground_style.rightTile, ground_style, accumulate_size));
             accumulate_size += ground_style.rightEdgeSize;
 
-            float padding_on_edge = (data.region.width - accumulate_size) * 0.5f;
-            for (int i = 0; i < tiles_.Count; i++) {
-                tiles_[i].transform.position += new Vector3(padding_on_edge, 0, 0);
-            }
+            return accumulate_size;
         }
 
         protected override void Init() {
