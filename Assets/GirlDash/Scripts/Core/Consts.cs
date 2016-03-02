@@ -6,6 +6,7 @@ namespace GirlDash {
         public const float kSoftEps = 1e-5f;
         public const int kFps = 60;
         public static readonly string kGroundLayer = "Ground";
+        public static readonly string kDeadAreaLayer = "DeadArea";
         public static readonly string kDamageAreaLayer = "DamageArea";
     }
 

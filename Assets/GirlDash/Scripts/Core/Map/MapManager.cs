@@ -50,7 +50,7 @@ namespace GirlDash.Map {
     }
 
     [RequireComponent(typeof(MapFactory))]
-    public class MapManager : MonoBehaviour, IGameComponent {
+    public class MapManager : MonoBehaviour {
         public bool showLog = true;
 
         [Tooltip("Minimum of number of blocks that is cached.")]
@@ -92,7 +92,8 @@ namespace GirlDash.Map {
                 "DeadArea", fixObjFolder,
                 new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.rightmost, MapConstants.kWallThickness),
                 false /* is_trigger */);
-            dead_area_.gameObject.layer = LayerMask.NameToLayer(Consts.kGroundLayer);
+            dead_area_.gameObject.layer = LayerMask.NameToLayer(Consts.kDeadAreaLayer);
+            //dead_area_.gameObject.AddComponent<DeadArea>();
         }
         private void InitialBuild() {
             InitBoundingColliders();
@@ -135,10 +136,6 @@ namespace GirlDash.Map {
 
             Reset(map_generator_.GetMap());
         }
-
-        public void GameStart() { }
-
-        public void GameOver() { }
 
         public void RecycleFolder(Transform folder) {
             folder.gameObject.SetActive(false);

@@ -17,9 +17,6 @@ namespace GirlDash {
         }
 
         public StartingLine startingLine;
-        // Only for debug, a line to show dead progress.
-        // TODO(hyf042): replace it with more fancy things.
-        public Transform deadLine;
 
         public PlayerController playerController;
         public Transform playerSpawnPoint;
@@ -28,8 +25,6 @@ namespace GirlDash {
         public MapManager mapManager;
 
         public bool debugMode = false;
-        public bool showDeadline = true;
-        public float maximumDeadDistance = 5.68f;
 
         public float progress;
         public StateEnum state = StateEnum.kNew;
@@ -52,7 +47,6 @@ namespace GirlDash {
             playerController.transform.position = playerSpawnPoint.transform.position;
 
             progress = startingLine.GetOffset(playerController.transform).x;
-            deadProgress = progress - maximumDeadDistance;
 
             for (int i = 0; i < components_.Count; i++) {
                 components_[i].GameStart();
@@ -78,6 +72,9 @@ namespace GirlDash {
         public void Register(IGameComponent component) {
             components_.Add(component);
         }
+        public void Unregister(IGameComponent component) {
+            components_.Remove(component);
+        }
 
         public float GetDistToPlayer(Transform transform) {
             return Mathf.Abs(transform.position.x - playerController.transform.position.x);
@@ -85,13 +82,6 @@ namespace GirlDash {
 
         public bool InFrontOfPlayer(Transform transform) {
             return transform.position.x >= playerController.transform.position.x;
-        }
-
-        public RuntimeInfo GetRuntimeInfo() {
-            return new RuntimeInfo() {
-                progress = progress,
-                deadProgress = deadProgress
-            };
         }
 
         public void OnPlayerDie() {
@@ -130,10 +120,7 @@ namespace GirlDash {
 
             InitRuntimeConsts();
             RegisterEvents();
-
-            Register(PoolManager.Instance);
-            Register(mapManager);
-            Register(cameraController);
+            
             Register(playerController);
         }
 
@@ -154,31 +141,12 @@ namespace GirlDash {
                 progress = startingLine.GetOffset(playerController.transform).x;
 
                 if (!debugMode) {
-                    // Updates dead progress
-                    // TODO(hyf042): find a better dead speed, now it's set to the character's speed.
-                    deadProgress += Time.deltaTime * playerController.moveSpeed * 0.8f;
-                    deadProgress = Mathf.Max(deadProgress, progress - maximumDeadDistance);
-
                     mapManager.UpdateProgress(progress);
-
                     playerController.Move(1);
                 }
-
-                if (deadProgress >= progress) {
-                    playerController.Die();
-                }
             }
 
-            // Only for debugging, draw a dead line, run close to deadProgress smoothly.
-            var deadline_position = deadLine.transform.localPosition;
-            if (deadLine.transform.localPosition.x - deadProgress < Consts.kSoftEps) {
-                deadline_position.x = deadProgress;
-            } else {
-                deadline_position.x = (deadLine.transform.localPosition.x - deadProgress) / 3 + deadProgress;
-            }
-            deadLine.transform.localPosition = deadline_position;
-
-            enemy_queue_.Update(progress, deadProgress);
+            enemy_queue_.Update(progress);
         }
 
         /// <summary>

@@ -2,15 +2,12 @@
 using System.Collections;
 
 namespace GirlDash {
-    public class CameraController : SingletonObject<CameraController>, IGameComponent {
+    public class CameraController : SingletonObject<CameraController> {
         public Transform target;
         public float offsetX = 4f;
         public new Camera camera;
 
         private Bounds cached_bounds_;
-
-        public void GameStart() { }
-        public void GameOver() { }
 
         public void RecalculateOrthographicBounds() {
             float screen_aspect = Screen.width / (float)Screen.height;

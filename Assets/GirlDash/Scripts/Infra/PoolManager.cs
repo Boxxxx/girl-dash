@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace GirlDash {
-    public class PoolManager : SingletonObject<PoolManager>, IGameComponent {
+    public class PoolManager : SingletonObject<PoolManager> {
         [Tooltip("If set to false, then the allocate & deallocate will be deliver to unity directly.")]
         public bool usePoolManager = true;
         public List<ObjectPool.Options> poolOptions = new List<ObjectPool.Options>();
@@ -128,9 +128,6 @@ namespace GirlDash {
             }
             yield return null;
         }
-
-        public void GameStart() {}
-        public void GameOver() {}
 
         /// <summary>
         // Since all active objects will be destroyed by Unity when the scene is destroyed.

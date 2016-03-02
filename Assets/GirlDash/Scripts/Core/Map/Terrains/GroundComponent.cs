@@ -4,13 +4,32 @@ using System.Collections.Generic;
 namespace GirlDash.Map {
     [RequireComponent(typeof(BoxCollider2D))]
     public class GroundComponent : TerrainComponent {
+        public BoxCollider2D leftDeadArea;
+        public BoxCollider2D rightDeadArea;
+        public float deadAreaThick = 0.1f;
+        public float deadAreaMarginProtectHeight = 0.2f;
+
         private BoxCollider2D collider_;
         private List<SpriteRenderer> tiles_ = new List<SpriteRenderer>();
         
         protected override Collider2D BuildCollider(TerrainData data, float real_width) {
             Rect region_rect = (Rect)data.region;
-            collider_.offset = new Vector2(real_width * 0.5f, -region_rect.height * 0.5f);
+            float half_region_height = region_rect.height * 0.5f;
+
+            collider_.offset = new Vector2(real_width * 0.5f, -half_region_height);
             collider_.size = new Vector2(real_width, region_rect.height);
+
+            // Set the left and right deadarea to be the same height of the ground.
+            // the 'deadAreaMarginProtectHeight' means the height offset below the edge of each side of ground,
+            // to protect the player to die just because of standing at the end of the ground.
+            leftDeadArea.transform.localPosition = new Vector2(0, 0);
+            leftDeadArea.offset = new Vector2(0, -half_region_height - deadAreaMarginProtectHeight * 0.5f);
+            leftDeadArea.size = new Vector2(deadAreaThick, region_rect.height  - deadAreaMarginProtectHeight);
+
+            rightDeadArea.transform.localPosition = new Vector2(real_width, 0);
+            rightDeadArea.offset = new Vector2(0, -half_region_height - deadAreaMarginProtectHeight * 0.5f);
+            rightDeadArea.size = new Vector2(deadAreaThick, region_rect.height - deadAreaMarginProtectHeight);
+
             return collider_;
         }
 

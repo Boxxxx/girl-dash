@@ -24,7 +24,7 @@ namespace GirlDash {
             sorted_enemies_.Remove(enemy);
         }
 
-        public void Update(float progress, float dead_progress) {
+        public void Update(float progress) {
             // Remove s the enemies that is behind the player.
             while (sorted_enemies_.Count > 0) {
                 if (sorted_enemies_[0].position < progress) {
