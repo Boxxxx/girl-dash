@@ -40,7 +40,7 @@ namespace GirlDash {
             Vector3 position = transform.position + Utils.RandomVector(firePositionFluctuation);
             Vector2 direction;
             
-            if (crossHairs != null) {
+            if (crossHairs != null && crossHairs.isActiveAndEnabled) {
                 direction = crossHairs.GetDirection(controller_.isFaceRight);
             } else {
                 direction = controller_.isFaceRight? Vector2.right: Vector2.left;
