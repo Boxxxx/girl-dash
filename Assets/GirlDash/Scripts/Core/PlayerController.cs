@@ -59,6 +59,7 @@ namespace GirlDash {
         protected override void OnDied() {
             Move(0);
             rigidbody2D_.velocity = Vector2.zero;
+            rigidbody2D_.isKinematic = true;
 
             SetActionTrigger(AnimatorParameters.Die);
 

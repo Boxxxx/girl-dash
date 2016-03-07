@@ -92,8 +92,9 @@ namespace GirlDash.Map {
                 "DeadArea", fixObjFolder,
                 new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.rightmost, MapConstants.kWallThickness),
                 false /* is_trigger */);
+            dead_area_.GetComponent<Collider2D>().isTrigger = true;
             dead_area_.gameObject.layer = LayerMask.NameToLayer(Consts.kDeadAreaLayer);
-            //dead_area_.gameObject.AddComponent<DeadArea>();
+            dead_area_.gameObject.AddComponent<DeadArea>();
         }
         private void InitialBuild() {
             InitBoundingColliders();

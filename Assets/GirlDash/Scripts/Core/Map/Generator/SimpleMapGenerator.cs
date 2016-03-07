@@ -13,6 +13,7 @@ namespace GirlDash.Map {
         public SimpleMapGenerator() {
             var options = new SimpleMapBuilder.Options();
             options.expectedBlockWidth = 15;
+            
             builder_ = new SimpleMapBuilder(options);
         }
 

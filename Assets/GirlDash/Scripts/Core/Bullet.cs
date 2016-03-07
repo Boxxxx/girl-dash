@@ -5,7 +5,7 @@ namespace GirlDash {
     public class Bullet : DamageArea {
         public float speed = 5f;
         public float lifeTime = 10f;
-        public bool isPenetrate = false;
+        public bool destroyWhenHit = true;
 
         public Vector2 direction {
             get; private set;
@@ -25,6 +25,11 @@ namespace GirlDash {
             Reset(atk, group);
         }
 
+        public void Reflect(int damage, DamageGroup group) {
+            Reset(damage, group);
+            InitTransform(transform.position, -direction);
+        }
+
         public void Update() {
             current_time_ += Time.deltaTime;
 
@@ -37,6 +42,12 @@ namespace GirlDash {
         }
 
         public override void OnTakeDamage(CharacterController character) {
+            if (destroyWhenHit) {
+                DestroySelf();
+            }
+        }
+
+        protected virtual void OnHitGround() {
             DestroySelf();
         }
 
@@ -46,7 +57,7 @@ namespace GirlDash {
 
         void OnTriggerEnter2D(Collider2D other) {
             if (other.gameObject.layer == RuntimeConsts.groundLayer) {
-                DestroySelf();
+                OnHitGround();
             }
         }
     }

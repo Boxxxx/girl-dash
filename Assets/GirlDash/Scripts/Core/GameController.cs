@@ -76,14 +76,6 @@ namespace GirlDash {
             components_.Remove(component);
         }
 
-        public float GetDistToPlayer(Transform transform) {
-            return Mathf.Abs(transform.position.x - playerController.transform.position.x);
-        }
-
-        public bool InFrontOfPlayer(Transform transform) {
-            return transform.position.x >= playerController.transform.position.x;
-        }
-
         public void OnPlayerDie() {
             if (isPlaying) {
                 state = StateEnum.kDead;

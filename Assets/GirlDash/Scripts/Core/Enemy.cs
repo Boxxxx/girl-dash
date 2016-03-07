@@ -34,7 +34,9 @@ namespace GirlDash {
             character_data.atk = enemy_data.fire_atk;
             character_data.hp = enemy_data.hp;
 
-            damageArea.Reset(enemy_data.hit_atk, DamageArea.DamageGroup.Enemy);
+            if (damageArea != null) {
+                damageArea.Reset(enemy_data.hit_atk, DamageArea.DamageGroup.Enemy);
+            }
 
             Reset(character_data);
             if (muzzle_ != null) {

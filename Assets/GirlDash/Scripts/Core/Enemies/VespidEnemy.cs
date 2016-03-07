@@ -2,21 +2,20 @@
 using System.Collections;
 
 namespace GirlDash {
-    public class DogEnemy : Enemy {
+    public class VespidEnemy : Enemy {
         public const float kActiveDistance = 10;
 
         protected override void Action() {
-            StartCoroutine(JumpLogic());
+            StartCoroutine(FireLogic());
         }
 
         protected override bool CheckActive() {
             return LocationUtils.GetDistToPlayer(transform) <= kActiveDistance;
         }
 
-        private IEnumerator JumpLogic() {
+        private IEnumerator FireLogic() {
             while (LocationUtils.InFrontOfPlayer(transform)) {
-                Jump();
-                
+                Fire();
                 // Waits for jump down
                 yield return new WaitForSeconds(2.0f);
             }
