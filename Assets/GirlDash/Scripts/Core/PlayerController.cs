@@ -5,6 +5,8 @@ using System;
 
 namespace GirlDash {
     public class PlayerController : CharacterController, IGameComponent {
+        public Animator animator;
+
         private bool running_ = false;
         private bool is_firing_ = false;
         private float current_fire_cooldown_ = 0;
@@ -27,6 +29,7 @@ namespace GirlDash {
             is_firing_ = false;
             current_fire_cooldown_ = 0;
             ready_for_next_shoot_ = true;
+            animator.Rebind();
         }
 
         public void GameOver() {
