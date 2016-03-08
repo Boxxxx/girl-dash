@@ -10,7 +10,11 @@ namespace GirlDash.Map {
         }
         [System.Serializable]
         public struct Enemies {
-           public Enemy dog;
+            public Enemy dog;
+            public Enemy scout;
+            public Enemy pioneer;
+            public Enemy shield;
+            public Enemy bomber;
         }
 
         public Terrains terrains;
@@ -35,6 +39,18 @@ namespace GirlDash.Map {
             switch (data.enemyType) {
                 case EnemyData.EnemyType.Dog:
                     new_enemy = PoolManager.Allocate(enemies.dog);
+                    break;
+                case EnemyData.EnemyType.Scout:
+                    new_enemy = PoolManager.Allocate(enemies.scout);
+                    break;
+                case EnemyData.EnemyType.Pioneer:
+                    new_enemy = PoolManager.Allocate(enemies.pioneer);
+                    break;
+                case EnemyData.EnemyType.Shield:
+                    new_enemy = PoolManager.Allocate(enemies.shield);
+                    break;
+                case EnemyData.EnemyType.Bomber:
+                    new_enemy = PoolManager.Allocate(enemies.bomber);
                     break;
                 default:
                     throw new System.NotImplementedException("Not implemented enemy type: " + data.enemyType);

@@ -15,6 +15,6 @@ namespace GirlDash {
         public float jumpCooldown = 0.25f;
 
         public int atk = 1;
-        public float fireCooldown = 0.25f;
+        public float fireCooldown = 0.5f;
     }
 }

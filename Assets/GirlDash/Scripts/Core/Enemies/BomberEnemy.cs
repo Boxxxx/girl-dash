@@ -3,8 +3,12 @@ using System.Collections;
 
 namespace GirlDash {
     public class BomberEnemy : Enemy {
-        public const float kActiveDistance = 5;
+        public float kActiveDistance = 5;
         public float bombChargeTime = 1f;
+
+        private Material material_;
+        private Color material_color_;
+        private bool is_boomed_ = false;
 
         // Overrides for avoiding warning in unit, since dog has no fire trigger.
         public override void Fire() {
@@ -24,13 +28,37 @@ namespace GirlDash {
             return LocationUtils.GetDistToPlayer(transform) <= kActiveDistance;
         }
 
+        protected override void OnDied() {
+            base.OnDied();
+            Boom();
+        }
+
         private IEnumerator BombLogic() {
+            LeanTween.color(gameObject, Color.red, bombChargeTime);
+
             yield return new WaitForSeconds(bombChargeTime);
+            Boom();
+        }
 
-            // Emit a bomb bullet.
-            Fire();
+        protected override void Awake() {
+            base.Awake();
+            material_ = GetComponent<Renderer>().material;
+            material_color_ = material_.color;
+        }
 
-            Die();
+        void OnEable() {
+            is_boomed_ = false;
+            material_.color = material_color_;
+        }
+
+        void Boom() {
+            if (!is_boomed_) {
+                is_boomed_ = true;
+
+                // Emit a bomb bullet.
+                Fire();
+                Die();
+            }
         }
     }
 }
