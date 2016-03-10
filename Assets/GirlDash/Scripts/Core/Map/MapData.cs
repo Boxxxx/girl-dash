@@ -36,6 +36,9 @@ namespace GirlDash.Map {
         public int hp = 1;
         public int fire_atk = 1;
         public int hit_atk = 1;
+        public float moveSpeed = 5.0f;
+        public int maxJumpCnt = 2;
+        public float jumpInitForce = 700.0f;
 
         // Since the MapVector is always integer and the ground component takes 1x1 block from integer coordinate,
         // if we want to put a enemy in the center of a ground block, it must have decimal coordinate, which is difficult to maintain.

@@ -34,7 +34,9 @@ namespace GirlDash {
             character_data.atk = enemy_data.fire_atk;
             character_data.hp = enemy_data.hp;
 
-            damageArea.Reset(enemy_data.hit_atk, DamageArea.DamageGroup.Enemy);
+            if (damageArea != null) {
+                damageArea.Reset(enemy_data.hit_atk, DamageArea.DamageGroup.Enemy);
+            }
 
             Reset(character_data);
             if (muzzle_ != null) {
@@ -49,6 +51,7 @@ namespace GirlDash {
                 // the center x axis of a unit length from (x to x + 1).
                 MapValue.RealValue(enemy_data.spawnPosition.x + enemy_data.spawnPosition.x + 1) * 0.5f,
                 MapValue.RealValue(enemy_data.spawnPosition.y));
+            transform.localScale = Vector3.one;
 
             is_action_ = false;
             is_visible_ = false;

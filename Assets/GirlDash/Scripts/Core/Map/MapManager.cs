@@ -56,7 +56,10 @@ namespace GirlDash.Map {
         [Tooltip("Minimum of number of blocks that is cached.")]
         public int minBlocksToCacheup = 3;
         public Transform blockFolder;
-        public Transform fixObjFolder;
+        public Transform groundsFolder;
+        public Transform bulletsFolder;
+        public Transform effectsFolder;
+        public BackgroundRenderer backgroundRenderer;
 
         /// <summary>
         /// What's really needed here is a dequeue, but we have only a couple of blocks (less than 10) in this group,
@@ -79,21 +82,22 @@ namespace GirlDash.Map {
 
         private void InitBoundingColliders() {
             MapUtils.CreateBoxCollider(
-                "WallLeft", fixObjFolder,
+                "WallLeft", groundsFolder,
                 new MapRect(-MapConstants.kWallThickness + mapData.leftmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
             MapUtils.CreateBoxCollider(
-                "WallRight", fixObjFolder,
+                "WallRight", groundsFolder,
                 new MapRect(mapData.rightmost, -MapConstants.kWallHalfHeight, MapConstants.kWallThickness, MapConstants.kWallHalfHeight << 1),
                 false /* is_trigger */);
         }
         private void InitDeadArea() {
             dead_area_ = MapUtils.CreateBoxCollider(
-                "DeadArea", fixObjFolder,
+                "DeadArea", groundsFolder,
                 new MapRect(0, mapData.deadHeight - MapConstants.kWallThickness, mapData.rightmost, MapConstants.kWallThickness),
                 false /* is_trigger */);
+            dead_area_.GetComponent<Collider2D>().isTrigger = true;
             dead_area_.gameObject.layer = LayerMask.NameToLayer(Consts.kDeadAreaLayer);
-            //dead_area_.gameObject.AddComponent<DeadArea>();
+            dead_area_.gameObject.AddComponent<DeadArea>();
         }
         private void InitialBuild() {
             InitBoundingColliders();
@@ -104,6 +108,16 @@ namespace GirlDash.Map {
 
         public void Reset(MapData map_data) {
             mapData = map_data;
+
+            Clear();
+
+            // Initial build
+            InitialBuild();
+        }
+
+        public void Clear() {
+            RecycleBullets();
+            RecycleEffects();
 
             // Reset varialbes
             progress = 0;
@@ -117,11 +131,13 @@ namespace GirlDash.Map {
 
             enemy_queue_.Clear();
 
-            // Initial build
-            InitialBuild();
+            for (int i = 0; i < groundsFolder.transform.childCount; i++) {
+                Destroy(groundsFolder.transform.GetChild(i).gameObject);
+            }
         }
 
         public void UpdateProgress(float new_progress) {
+            backgroundRenderer.UpdateProgress(new_progress);
             if (new_progress > progress) {
                 progress = new_progress;
                 RefreshBlocks();
@@ -230,11 +246,22 @@ namespace GirlDash.Map {
             var folder = new GameObject("Cached Folder");
             folder.transform.parent = blockFolder;
             folder.transform.localPosition = Vector3.zero;
+            folder.transform.localScale = Vector3.one;
             folder.gameObject.SetActive(false);
             return folder.transform;
         }
 
+        private void RecycleBullets() {
+            var bullets = bulletsFolder.GetComponentsInChildren<Bullet>();
+            for (int i = 0; i < bullets.Length; i++) {
+                bullets[i].Release();
+            }
+        }
+
+        private void RecycleEffects() { }
+
         void Awake() {
+            RuntimeConsts.mapScale = transform.localScale.x;
             // Caches block folders, we cache twice the folder to avoid dynamically instantiate.
             for (int i = 0; i < minBlocksToCacheup * 2; i++) {
                 unused_folder_queue_.Enqueue(NewFolder());

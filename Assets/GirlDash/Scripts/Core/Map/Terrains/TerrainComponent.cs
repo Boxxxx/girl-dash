@@ -22,6 +22,7 @@ namespace GirlDash.Map {
             is_dirty = true;
 
             transform.parent = parent_tranform;
+            transform.localScale = Vector3.one;
             this.data = data;
 
             Init();

@@ -19,6 +19,14 @@ namespace GirlDash {
         public static Vector2 initScreenSize;
         public static int groundLayer;
         public static int groundLayerMask;
+        public static float mapScale = 1.0f;
+
+        public static float mapWidth {
+            get { return initScreenSize.x / mapScale; }
+        }
+        public static float mapHeight {
+            get { return initScreenSize.y / mapScale; }
+        }
     }
 
     public static class ResourceNames {

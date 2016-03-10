@@ -43,7 +43,12 @@ namespace GirlDash {
 
         private EnemyQueue enemy_queue_ = new EnemyQueue();
 
-        private void Restart() {
+        private IEnumerator RestartInternal() {
+            // Inits the map data.
+            yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator()));
+
+            yield return StartCoroutine(playerController.Load(new CharacterData()));
+
             playerController.transform.position = playerSpawnPoint.transform.position;
 
             progress = startingLine.GetOffset(playerController.transform).x;
@@ -76,17 +81,15 @@ namespace GirlDash {
             components_.Remove(component);
         }
 
-        public float GetDistToPlayer(Transform transform) {
-            return Mathf.Abs(transform.position.x - playerController.transform.position.x);
+        public void Restart() {
+            state = StateEnum.kNew;
+            StartCoroutine(RestartInternal());
         }
 
-        public bool InFrontOfPlayer(Transform transform) {
-            return transform.position.x >= playerController.transform.position.x;
-        }
-
-        public void OnPlayerDie() {
+        public void OnGameOver() {
             if (isPlaying) {
                 state = StateEnum.kDead;
+                Debug.Log("on game over");
 
                 for (int i = 0; i < components_.Count; i++) {
                     components_[i].GameOver();
@@ -128,12 +131,7 @@ namespace GirlDash {
             // Preload pooling objects.
             yield return StartCoroutine(PoolManager.Instance.Load());
 
-            // Inits the map data.
-            yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator()));
-
-            yield return StartCoroutine(playerController.Load(new CharacterData()));
-
-            Restart();
+            yield return StartCoroutine(RestartInternal());
         }
 
         void FixedUpdate() {
@@ -159,6 +157,12 @@ namespace GirlDash {
                 new Rect(0, 50, 200, 50),
                 string.Format("HP: {0}\nProgress: {1}\nJump CD: {2}, Fire CD: {3}",
                 playerController.hp, progress, playerController.jumpCooldown, playerController.fireCooldown));
+
+            if (state == StateEnum.kDead) {
+                if (GUI.Button(new Rect(0, 0, 100, 50), "Restart")) {
+                    Restart();
+                }
+            }
         }
         #endregion
     }

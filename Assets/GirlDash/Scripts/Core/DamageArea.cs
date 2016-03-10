@@ -17,7 +17,7 @@ namespace GirlDash {
             get; private set;
         }
         public DamageGroup damageGroup {
-            get; private set;
+            get; protected set;
         }
 
         public void Reset(int damage, DamageGroup group) {

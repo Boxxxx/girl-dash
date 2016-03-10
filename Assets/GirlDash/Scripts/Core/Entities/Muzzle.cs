@@ -10,6 +10,8 @@ namespace GirlDash {
         public int numBulletsPerShoot = 1;
         public float fireTimePeriod = 0.25f;
         public Vector2 firePositionFluctuation = new Vector2(0, 0.1f);
+
+        public bool directToTarget = true;
         public float fireDirectionFluctuation = 5f;
 
         private CharacterController controller_;
@@ -36,14 +38,18 @@ namespace GirlDash {
             if (new_bullet == null) {
                 return;
             }
+            new_bullet.transform.parent = GameController.Instance.mapManager.bulletsFolder;
+            new_bullet.transform.localScale = Vector3.one;
 
             Vector3 position = transform.position + Utils.RandomVector(firePositionFluctuation);
             Vector2 direction;
             
             if (crossHairs != null && crossHairs.isActiveAndEnabled) {
                 direction = crossHairs.GetDirection(controller_.isFaceRight);
-            } else {
+            } else if (directToTarget) {
                 direction = controller_.isFaceRight? Vector2.right: Vector2.left;
+            } else {
+                direction = Vector2.zero;
             }
 
             if (position.y >= transform.position.y) {

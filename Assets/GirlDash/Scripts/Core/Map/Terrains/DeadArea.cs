@@ -24,7 +24,7 @@ namespace GirlDash {
         }
 
         void Trigger() {
-            if (is_triggered_) {
+            if (is_triggered_ && !player_.isReady) {
                 return;
             }
             is_triggered_ = true;

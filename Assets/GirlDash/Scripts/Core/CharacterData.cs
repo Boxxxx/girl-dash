@@ -5,9 +5,9 @@ namespace GirlDash {
     [System.Serializable]
     public class CharacterData {
         public string name = "StenMK2";
-        public int hp = 100;
+        public int hp = 5;
 
-        public float moveSpeed = 5.0f;
+        public float moveSpeed = 4.0f;
 
         public int maxJumpCnt = 2;
         public float jumpInitForce = 700.0f;
@@ -15,6 +15,6 @@ namespace GirlDash {
         public float jumpCooldown = 0.25f;
 
         public int atk = 1;
-        public float fireCooldown = 0.25f;
+        public float fireCooldown = 0.5f;
     }
 }

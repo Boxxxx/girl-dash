@@ -150,6 +150,7 @@ namespace GirlDash {
 
             isGrounded = false;
             rigidbody2D_.isKinematic = false;
+            Debug.Log("Reset " + name);
 
             character_data_ = character_data;
             hp_ = character_data_.hp;
@@ -209,7 +210,7 @@ namespace GirlDash {
             animator_.SetBool(AnimatorParameters.IsMove, direction != 0);
 
             rigidbody2D_.velocity = new Vector2(
-                move_axis_ * moveSpeed, rigidbody2D_.velocity.y);
+                move_axis_ * moveSpeed * RuntimeConsts.mapScale, rigidbody2D_.velocity.y);
 
             if (move_axis_ > 0 && !isFaceRight ||
                 move_axis_ < 0 && isFaceRight) {
@@ -224,7 +225,7 @@ namespace GirlDash {
                     ResetActionTrigger(AnimatorParameters.Fall);
                     if (current_jump_counter_ == 0) {
                         SetActionTrigger(AnimatorParameters.Jump);
-                        rigidbody2D_.AddForce(new Vector2(0f, jumpForce));
+                        rigidbody2D_.AddForce(new Vector2(0f, jumpForce /* we do not consider mapScale for jumpForce */));
                     } else {
                         Vector2 velcoity = rigidbody2D_.velocity;
                         velcoity.y = character_data_.doubleJumpSpeed;
