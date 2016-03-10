@@ -7,6 +7,7 @@ namespace GirlDash {
     public class PlayerController : CharacterController, IGameComponent {
         public Animator animator;
 
+        private Vector3 start_position_;
         private bool running_ = false;
         private bool is_firing_ = false;
         private float current_fire_cooldown_ = 0;
@@ -19,7 +20,14 @@ namespace GirlDash {
             get { return current_fire_cooldown_; }
         }
 
+        public bool isReady {
+            get { return !rigidbody2D_.isKinematic; }
+        }
+
         public IEnumerator Load(CharacterData character_data) {
+            rigidbody2D_.isKinematic = true;
+            transform.position = start_position_;
+            Debug.Log("player position: " + transform.position);
             Reset(character_data);
             yield return null;
         }
@@ -62,11 +70,11 @@ namespace GirlDash {
         protected override void OnDied() {
             Move(0);
             rigidbody2D_.velocity = Vector2.zero;
-            rigidbody2D_.isKinematic = true;
+            Debug.Log("player die");
 
             SetActionTrigger(AnimatorParameters.Die);
 
-            GameController.Instance.OnPlayerDie();
+            GameController.Instance.OnGameOver();
         }
 
         protected override bool CheckTakeDamage(DamageArea damage_area) {
@@ -88,6 +96,11 @@ namespace GirlDash {
         }
 
         #region Unity Callbacks
+        protected override void Awake() {
+            base.Awake();
+            start_position_ = transform.position;
+        }
+
         protected void Start() {
             if (muzzle_ != null) {
                 muzzle_.Reset();

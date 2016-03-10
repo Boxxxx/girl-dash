@@ -15,6 +15,7 @@ namespace GirlDash.Map {
             var wall = new GameObject(name);
             wall.transform.parent = parent;
             wall.transform.localPosition = rect.center;
+            wall.transform.localScale = new Vector3(1, 1, 1);
 
             var collider = wall.AddComponent<BoxCollider2D>();
             collider.size = rect.size;

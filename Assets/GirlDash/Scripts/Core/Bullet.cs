@@ -38,7 +38,11 @@ namespace GirlDash {
                 return;
             }
 
-            transform.position = transform.position + (Vector3)(direction * speed * Time.deltaTime);
+            transform.position = transform.position + (Vector3)(direction * speed * Time.deltaTime * RuntimeConsts.mapScale);
+        }
+
+        public void Release() {
+            DestroySelf();
         }
 
         public override void OnTakeDamage(CharacterController character) {

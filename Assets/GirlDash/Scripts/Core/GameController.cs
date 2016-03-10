@@ -86,9 +86,10 @@ namespace GirlDash {
             StartCoroutine(RestartInternal());
         }
 
-        public void OnPlayerDie() {
+        public void OnGameOver() {
             if (isPlaying) {
                 state = StateEnum.kDead;
+                Debug.Log("on game over");
 
                 for (int i = 0; i < components_.Count; i++) {
                     components_[i].GameOver();

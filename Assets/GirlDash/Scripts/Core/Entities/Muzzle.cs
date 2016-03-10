@@ -38,6 +38,8 @@ namespace GirlDash {
             if (new_bullet == null) {
                 return;
             }
+            new_bullet.transform.parent = GameController.Instance.mapManager.bulletsFolder;
+            new_bullet.transform.localScale = Vector3.one;
 
             Vector3 position = transform.position + Utils.RandomVector(firePositionFluctuation);
             Vector2 direction;

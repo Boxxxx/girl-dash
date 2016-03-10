@@ -51,6 +51,7 @@ namespace GirlDash {
                 // the center x axis of a unit length from (x to x + 1).
                 MapValue.RealValue(enemy_data.spawnPosition.x + enemy_data.spawnPosition.x + 1) * 0.5f,
                 MapValue.RealValue(enemy_data.spawnPosition.y));
+            transform.localScale = Vector3.one;
 
             is_action_ = false;
             is_visible_ = false;
