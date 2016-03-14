@@ -10,11 +10,11 @@ namespace GirlDash.Map {
         private SimpleMapBuilder builder_;
         private MapData map_data;
 
-        public SimpleMapGenerator() {
+        public SimpleMapGenerator(MapManager map_manager) {
             var options = new SimpleMapBuilder.Options();
             options.expectedBlockWidth = 15;
             
-            builder_ = new SimpleMapBuilder(options);
+            builder_ = new SimpleMapBuilder(options, map_manager);
         }
 
         public IEnumerator Generate() {
@@ -30,7 +30,7 @@ namespace GirlDash.Map {
                 0, 0, Mathf.Max(12, random_.Next(random_ground_width_range.x, random_ground_width_range.y)));
 
             // Try to add a test enemy
-            builder_.AddEnemy(EnemyData.EnemyType.Dog, 10, 1, 1, 1);
+            builder_.AddEnemy(EnemyData.EnemyType.Dog, 10);
 
             bool last_is_high_ground = false;
             for (int i = 1; i < num_ground; i++) {
@@ -43,7 +43,7 @@ namespace GirlDash.Map {
                     random_.Next(random_ground_width_range.x, random_ground_width_range.y / 2 * 2 /* round down */));
 
                 if (random_.NextDouble() < 0.5) {
-                    int enemy_type_index = random_.Next(0, 6);
+                    int enemy_type_index = random_.Next(0, 5);
                     EnemyData.EnemyType enemy_type = EnemyData.EnemyType.Scout + enemy_type_index;
                     AddEnemy(enemy_type, random_.Next(0, Mathf.Max(1, ground_data.region.width - 1)));
                 }
@@ -56,23 +56,7 @@ namespace GirlDash.Map {
         }
 
         public void AddEnemy(EnemyData.EnemyType enemy_type, int offset) {
-            switch (enemy_type) {
-                case EnemyData.EnemyType.Dog:
-                    builder_.AddEnemy(enemy_type, offset, 1, 1, 1);
-                    break;
-                case EnemyData.EnemyType.Pioneer:
-                    builder_.AddEnemy(enemy_type, offset, 1, 1, 1);
-                    break;
-                case EnemyData.EnemyType.Scout:
-                    builder_.AddEnemy(enemy_type, offset, 1, 1, 1);
-                    break;
-                case EnemyData.EnemyType.Shield:
-                    builder_.AddEnemy(enemy_type, offset, 1, 1, 1);
-                    break;
-                case EnemyData.EnemyType.Bomber:
-                    builder_.AddEnemy(enemy_type, offset, 1, 5, 1);
-                    break;
-            }
+            builder_.AddEnemy(enemy_type, offset);
         }
 
         public MapData GetMap() {

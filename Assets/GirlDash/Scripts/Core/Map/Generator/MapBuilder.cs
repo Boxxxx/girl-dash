@@ -168,6 +168,8 @@ namespace GirlDash.Map {
         /// </summary>
         private TerrainData current_ground_ = null;
 
+        private MapManager map_manager_ = null;
+
         /// <summary>
         /// Current ground offset, all widgets components should be placed related to the topleft corner of ground.
         /// If there is not  a ground at all, just return (0, 0).
@@ -182,8 +184,9 @@ namespace GirlDash.Map {
             }
         }
 
-        public SimpleMapBuilder(Options options) {
+        public SimpleMapBuilder(Options options, MapManager map_manager) {
             options_ = options;
+            map_manager_ = map_manager;
         }
 
         public void Reset() {
@@ -222,12 +225,8 @@ namespace GirlDash.Map {
             return terrian_data;
         }
 
-        public EnemyData AddEnemy(EnemyData.EnemyType type, int offset_x, int hp, int fire_atk, int hit_atk, int offset_y) {
-            EnemyData enemy_data = new EnemyData();
-            enemy_data.enemyType = type;
-            enemy_data.hp = hp;
-            enemy_data.fire_atk = fire_atk;
-            enemy_data.hit_atk = hit_atk;
+        public EnemyData AddEnemy(EnemyData.EnemyType type, int offset_x, int offset_y) {
+            EnemyData enemy_data = map_manager_.mapFactory.GetDefaultEnemyData(type).Clone() as EnemyData;
 
             MapVector current_offset = CurrentGroundOffset;
             enemy_data.spawnPosition = new MapVector(current_offset.x + offset_x, current_offset.y + offset_y);
@@ -236,8 +235,8 @@ namespace GirlDash.Map {
             return enemy_data;
         }
 
-        public EnemyData AddEnemy(EnemyData.EnemyType type, int offset, int hp, int fire_atk, int hit_atk) {
-            return AddEnemy(type, offset, hp, fire_atk, hit_atk, 0);
+        public EnemyData AddEnemy(EnemyData.EnemyType type, int offset) {
+            return AddEnemy(type, offset, 0);
         }
 
         public MapData InitMapData() {

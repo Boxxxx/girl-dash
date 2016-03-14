@@ -9,16 +9,9 @@ namespace GirlDash {
 
         private Bounds cached_bounds_;
 
-        public void RecalculateOrthographicBounds() {
-            float screen_aspect = Screen.width / (float)Screen.height;
-            float camera_height = camera.orthographicSize * 2;
-            cached_bounds_.center = new Vector3(camera.transform.position.x, camera.transform.position.y, 0);
-            cached_bounds_.size = new Vector3(camera_height * screen_aspect, camera_height, 0);
-        }
-
         public Bounds GetCachedCameraBounds(bool force_to_refresh) {
             if (force_to_refresh) {
-                RecalculateOrthographicBounds();
+                cached_bounds_ = ScreenUtil.CalculateOrthographicBounds(camera);
             }
             return cached_bounds_;
         }
@@ -29,7 +22,7 @@ namespace GirlDash {
         /// </summary>
         public bool CheckInView(Transform transform, bool force_to_refresh) {
             if (force_to_refresh) {
-                RecalculateOrthographicBounds();
+                cached_bounds_ = ScreenUtil.CalculateOrthographicBounds(camera);
             }
             return cached_bounds_.Contains(transform.position);
         }
@@ -46,7 +39,7 @@ namespace GirlDash {
 
         void Update() {
             Track(target);
-            RecalculateOrthographicBounds();
+            cached_bounds_ = ScreenUtil.CalculateOrthographicBounds(camera);
         }
     }
 }

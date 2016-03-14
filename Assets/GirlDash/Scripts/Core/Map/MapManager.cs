@@ -70,6 +70,7 @@ namespace GirlDash.Map {
         private EnemyQueue enemy_queue_ = new EnemyQueue(); 
 
         public MapData mapData { get; private set; }
+        public MapFactory mapFactory { get { return map_factory_; } }
 
         public float progress { get; private set; }
         public float sightRange { get; private set; }

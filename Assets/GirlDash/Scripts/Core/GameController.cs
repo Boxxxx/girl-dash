@@ -45,7 +45,7 @@ namespace GirlDash {
 
         private IEnumerator RestartInternal() {
             // Inits the map data.
-            yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator()));
+            yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator(mapManager)));
 
             yield return StartCoroutine(playerController.Load(new CharacterData()));
 
