@@ -29,5 +29,6 @@ namespace GirlDash {
 
         public virtual void GameStart() {}
         public virtual void GameOver() {}
+        public virtual void GameReset() {}
     }
 }

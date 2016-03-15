@@ -13,6 +13,9 @@ namespace GirlDash.UI {
         }
 
         protected virtual void Update() {
+            if (followee == null) {
+                return;
+            }
             Vector2 new_pos = ScreenUtil.WorldPosToUI(followee.transform.position);
             transform.position = ScreenUtil.UILocalToWorld(new Vector2(
                 GetNewValue(new_pos.x + offset.x, transform.position.x, moveThreshold.x),

@@ -13,6 +13,9 @@ namespace GirlDash.UI {
         }
 
         void Update() {
+            if (character_ == null) {
+                return;
+            }
             progressBar.value = character_.hpRatio;
         }
     }

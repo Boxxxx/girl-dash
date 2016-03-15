@@ -45,6 +45,8 @@ namespace GirlDash {
             running_ = false;
         }
 
+        public void GameReset() {}
+
         public override void Fire() {
             if (!isAlive || muzzle_ == null /* must have a gun */ || current_fire_cooldown_ > Consts.kSoftEps /* gun must be cooldown */) {
                 return;

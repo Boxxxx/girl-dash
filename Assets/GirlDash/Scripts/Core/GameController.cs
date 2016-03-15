@@ -83,6 +83,9 @@ namespace GirlDash {
 
         public void Restart() {
             state = StateEnum.kNew;
+            for (int i = 0; i < components_.Count; i++) {
+                components_[i].GameReset();
+            }
             StartCoroutine(RestartInternal());
         }
 
@@ -130,6 +133,10 @@ namespace GirlDash {
         IEnumerator Start() {
             // Preload pooling objects.
             yield return StartCoroutine(PoolManager.Instance.Load());
+
+            for (int i = 0; i < components_.Count; i++) {
+                components_[i].GameReset();
+            }
 
             yield return StartCoroutine(RestartInternal());
         }

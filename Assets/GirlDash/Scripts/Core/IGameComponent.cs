@@ -8,5 +8,7 @@ namespace GirlDash {
         // Calls when game end,
         // since this game never wins, so just call this when the player is dead.
         void GameOver();
+        // Calls when game reset.
+        void GameReset();
     }
 }

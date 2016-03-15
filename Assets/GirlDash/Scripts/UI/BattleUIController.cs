@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace GirlDash.UI {
-    public class BattleUIController : SingletonObject<BattleUIController> {
+    public class BattleUIController : SingletonObject<BattleUIController>, IGameComponent {
         public new Camera camera;
         public PlayerController controller;
         public UIHpBar hpBar;
@@ -13,12 +13,14 @@ namespace GirlDash.UI {
         private bool is_firing_ = false;
 
         #region Public Interfaces
-        public void Reset() {
+        public void GameReset() {
             for (int i = 0; i < recycleFolder.childCount; i++) {
                 PoolManager.Deallocate(recycleFolder.GetChild(i));
             }
             enemy_hpbar_map_.Clear();
         }
+        public void GameStart() { }
+        public void GameOver() {}
 
         public Bounds GetCachedCameraBounds(bool force_to_refresh) {
             if (force_to_refresh) {
@@ -65,7 +67,8 @@ namespace GirlDash.UI {
         }
         #endregion
 
-        void Start() {
+        void Awake() {
+            GameController.Instance.Register(this);
             EventPool.Instance.On(Events.OnEnemyBorn, OnEnemyBorn);
             EventPool.Instance.On(Events.OnEnemyDestroy, OnEnemyDestroy);
         }

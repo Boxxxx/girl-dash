@@ -15,9 +15,9 @@ namespace GirlDash {
 
         public static Vector2 WorldPosToUI(Vector3 position) {
             Vector2 pos = GameController.Instance.cameraController.camera
-                .WorldToScreenPoint(position);
+                .WorldToViewportPoint(position);
             return BattleUIController.Instance.transform.InverseTransformPoint(
-                BattleUIController.Instance.camera.ScreenToWorldPoint(pos));
+                BattleUIController.Instance.camera.ViewportToWorldPoint(pos));
         }
 
         public static Vector3 UILocalToWorld(Vector2 ui_pos) {
