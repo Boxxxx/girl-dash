@@ -32,13 +32,15 @@ namespace GirlDash {
             yield return null;
         }
 
-        public void GameStart() {
+        public void GameReady() {
             running_ = true;
             is_firing_ = false;
             current_fire_cooldown_ = 0;
             ready_for_next_shoot_ = true;
             animator.Rebind();
         }
+
+        public void GameStart() {}
 
         public void GameOver() {
             Move(0);

@@ -13,7 +13,7 @@ namespace GirlDash {
             get; private set;
         }
 
-        public override void GameStart() {
+        public override void GameReady() {
             deadProgress = progress - maximumDeadDistance;
         }
 

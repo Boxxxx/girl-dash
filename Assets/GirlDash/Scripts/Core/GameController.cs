@@ -6,9 +6,10 @@ using UnityEngine;
 namespace GirlDash {
     public class GameController : SingletonObject<GameController> {
         public enum StateEnum {
-            kNew,
+            kLoading,
+            kReady,
             kPlaying,
-            kDead
+            kIdle
         }
 
         public struct RuntimeInfo {
@@ -27,7 +28,7 @@ namespace GirlDash {
         public bool debugMode = false;
 
         public float progress;
-        public StateEnum state = StateEnum.kNew;
+        public StateEnum state = StateEnum.kIdle;
 
         private List<IGameComponent> components_ = new List<IGameComponent>();
 
@@ -40,10 +41,17 @@ namespace GirlDash {
         public EnemyQueue enemyQueue {
             get { return enemy_queue_; }
         }
+        public bool isPaused {
+            get { return is_paused_; }
+            set {
+                SetPause(value);
+            }
+        }
 
+        private bool is_paused_ = false;
         private EnemyQueue enemy_queue_ = new EnemyQueue();
 
-        private IEnumerator RestartInternal() {
+        private IEnumerator ResetInternal() {
             // Inits the map data.
             yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator(mapManager)));
 
@@ -52,12 +60,14 @@ namespace GirlDash {
             playerController.transform.position = playerSpawnPoint.transform.position;
 
             progress = startingLine.GetOffset(playerController.transform).x;
+            RuntimeData.currentProgress = progress;
 
             for (int i = 0; i < components_.Count; i++) {
-                components_[i].GameStart();
+                components_[i].GameReady();
             }
 
-            state = StateEnum.kPlaying;
+            state = StateEnum.kReady;
+            SetPause(true);
         }
 
         #region Game Events
@@ -81,17 +91,33 @@ namespace GirlDash {
             components_.Remove(component);
         }
 
-        public void Restart() {
-            state = StateEnum.kNew;
+        public void Reset() {
+            if (state == StateEnum.kLoading || state == StateEnum.kReady) {
+                return;
+            }
+            state = StateEnum.kLoading;
+            RuntimeData.maxProgress = Mathf.Max(RuntimeData.maxProgress, progress);
             for (int i = 0; i < components_.Count; i++) {
                 components_[i].GameReset();
             }
-            StartCoroutine(RestartInternal());
+            StartCoroutine(ResetInternal());
+        }
+
+        public void GetOff() {
+            if (state != StateEnum.kReady) {
+                return;
+            }
+            state = StateEnum.kPlaying;
+            for (int i = 0; i < components_.Count; i++) {
+                components_[i].GameStart();
+            }
+            SetPause(false);
         }
 
         public void OnGameOver() {
             if (isPlaying) {
-                state = StateEnum.kDead;
+                state = StateEnum.kIdle;
+                RuntimeData.maxProgress = Mathf.Max(RuntimeData.maxProgress, progress);
                 Debug.Log("on game over");
 
                 for (int i = 0; i < components_.Count; i++) {
@@ -118,6 +144,19 @@ namespace GirlDash {
             EventPool.Instance.On(Events.OnEnemyInView, OnEnemyInView);
             EventPool.Instance.On(Events.OnEnemyDestroy, OnEnemyDestroy);
         }
+
+        private void SetPause(bool is_pause) {
+            if (is_paused_ == is_pause) {
+                return;
+            }
+
+            is_paused_ = is_pause;
+            if (is_pause) {
+                Time.timeScale = 0;
+            } else {
+                Time.timeScale = 1;
+            }
+        }
         #endregion
 
         #region Unity Callbacks
@@ -134,14 +173,13 @@ namespace GirlDash {
             // Preload pooling objects.
             yield return StartCoroutine(PoolManager.Instance.Load());
 
-            for (int i = 0; i < components_.Count; i++) {
-                components_[i].GameReset();
-            }
-
-            yield return StartCoroutine(RestartInternal());
+            Reset();
         }
 
         void FixedUpdate() {
+            if (is_paused_) {
+                return;
+            }
             if (isPlaying) {
                 progress = startingLine.GetOffset(playerController.transform).x;
 
@@ -152,6 +190,15 @@ namespace GirlDash {
             }
 
             enemy_queue_.Update(progress);
+        }
+
+        void Update() {
+            if (is_paused_) {
+                return;
+            }
+            if (isPlaying) {
+                RuntimeData.currentProgress = progress;
+            }
         }
 
         /// <summary>
@@ -165,9 +212,9 @@ namespace GirlDash {
                 string.Format("HP: {0}\nProgress: {1}\nJump CD: {2}, Fire CD: {3}",
                 playerController.hp, progress, playerController.jumpCooldown, playerController.fireCooldown));
 
-            if (state == StateEnum.kDead) {
+            if (state == StateEnum.kIdle) {
                 if (GUI.Button(new Rect(0, 0, 100, 50), "Restart")) {
-                    Restart();
+                    Reset();
                 }
             }
         }

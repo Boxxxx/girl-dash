@@ -5,8 +5,14 @@ namespace GirlDash.UI {
     public class BattleUIController : SingletonObject<BattleUIController>, IGameComponent {
         public new Camera camera;
         public PlayerController controller;
-        public UIHpBar hpBar;
         public Transform recycleFolder;
+
+        #region UI
+        public UIHpBar hpBar;
+        public UIGameProgress gameProgress;
+        public UIPanel pausePanel;
+        public UIStartPanel startPanel;
+        #endregion
 
         private Dictionary<Enemy, UIHpBar> enemy_hpbar_map_ = new Dictionary<Enemy, UIHpBar>();
         private Bounds cached_bounds_;
@@ -18,9 +24,14 @@ namespace GirlDash.UI {
                 PoolManager.Deallocate(recycleFolder.GetChild(i));
             }
             enemy_hpbar_map_.Clear();
+            gameProgress.ResetAll();
         }
+        public void GameReady() { }
         public void GameStart() { }
-        public void GameOver() {}
+        public void GameOver() {
+            gameProgress.ResetAll();
+            startPanel.Show();
+        }
 
         public Bounds GetCachedCameraBounds(bool force_to_refresh) {
             if (force_to_refresh) {
@@ -45,6 +56,22 @@ namespace GirlDash.UI {
 
         public void Jump() {
             controller.Jump();
+        }
+        public void Pause() {
+            GameController.Instance.isPaused = true;
+            pausePanel.gameObject.SetActive(true);
+        }
+        public void Resume() {
+            GameController.Instance.isPaused = false;
+            pausePanel.gameObject.SetActive(false);
+        }
+        public void GetOff() {
+            GameController.Instance.GetOff();
+        }
+        public void BackToTitle() {
+            pausePanel.gameObject.SetActive(false);
+            GameController.Instance.Reset();
+            startPanel.Show();
         }
         #endregion
 

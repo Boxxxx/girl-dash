@@ -3,6 +3,8 @@ using System.Collections;
 
 namespace GirlDash {
     public interface IGameComponent {
+        // Calls when game ready.
+        void GameReady();
         // Calls when game start.
         void GameStart();
         // Calls when game end,

@@ -27,6 +27,7 @@ namespace GirlDash {
             controller_.Unregister(this);
         }
 
+        public virtual void GameReady() {}
         public virtual void GameStart() {}
         public virtual void GameOver() {}
         public virtual void GameReset() {}
