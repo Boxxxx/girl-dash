@@ -6,7 +6,7 @@ namespace GirlDash {
         public float kActiveDistance = 5;
         public float bombChargeTime = 1f;
 
-        private Material material_;
+        private Renderer renderer_;
         private Color material_color_;
         private bool is_boomed_ = false;
 
@@ -42,13 +42,17 @@ namespace GirlDash {
 
         protected override void Awake() {
             base.Awake();
-            material_ = GetComponent<Renderer>().material;
-            material_color_ = material_.color;
+            renderer_ = GetComponent<Renderer>();
+            material_color_ = renderer_.material.color;
         }
 
-        void OnEable() {
+        void OnEnable() {
             is_boomed_ = false;
-            material_.color = material_color_;
+        }
+
+        void OnDisable() {
+            LeanTween.cancel(gameObject);
+            renderer_.material.color = material_color_;
         }
 
         void Boom() {

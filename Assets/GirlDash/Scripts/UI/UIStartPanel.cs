@@ -1,27 +1,40 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 namespace GirlDash.UI {
     public class UIStartPanel : MonoBehaviour {
         public UILabel maxProgress;
+        public UILabel gameOver;
         public UICountdown countdown;
 
-        public void Show() {
+        private bool is_game_starting_ = false;
+
+        public void ShowStart() {
             gameObject.SetActive(true);
+            gameOver.gameObject.SetActive(false);
             maxProgress.text = ((int)RuntimeData.maxProgress).ToString("0000000000");  // 10 digits
+            is_game_starting_ = false;
         }
 
-        public void GetOff() {
-            GameController.Instance.Reset();
-            gameObject.SetActive(false);
-            countdown.finishCB = () => {
-                GameController.Instance.GetOff();
-            };
-            countdown.gameObject.SetActive(true);
+        public void ShowGameOver() {
+            gameObject.SetActive(true);
+            gameOver.gameObject.SetActive(true);
+            maxProgress.text = ((int)RuntimeData.maxProgress).ToString("0000000000");  // 10 digits
+            is_game_starting_ = false;
         }
 
-        void Start() {
-            Show();
+        public void StartGame() {
+            // Only one shot in each show.
+            if (is_game_starting_) {
+                return;
+            }
+            is_game_starting_ = true;
+            StartCoroutine(GameController.Instance.ResetGameAsync(() => {
+                gameObject.SetActive(false);
+                countdown.finishCB = () => {
+                    GameController.Instance.StartGame();
+                };
+                countdown.gameObject.SetActive(true);
+            }));
         }
     }
 }

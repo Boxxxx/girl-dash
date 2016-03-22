@@ -20,7 +20,9 @@ namespace GirlDash.UI {
 
         #region Public Interfaces
         public void GameReset() {
-            for (int i = 0; i < recycleFolder.childCount; i++) {
+            // Loop from the end to the front,
+            // the childCount will decrease since we remove it from recycleFolder.
+            for (int i = recycleFolder.childCount - 1; i >= 0 ; i--) {
                 PoolManager.Deallocate(recycleFolder.GetChild(i));
             }
             enemy_hpbar_map_.Clear();
@@ -30,7 +32,7 @@ namespace GirlDash.UI {
         public void GameStart() { }
         public void GameOver() {
             gameProgress.ResetAll();
-            startPanel.Show();
+            startPanel.ShowGameOver();
         }
 
         public Bounds GetCachedCameraBounds(bool force_to_refresh) {
@@ -66,12 +68,12 @@ namespace GirlDash.UI {
             pausePanel.gameObject.SetActive(false);
         }
         public void GetOff() {
-            GameController.Instance.GetOff();
+            GameController.Instance.StartGame();
         }
         public void BackToTitle() {
+            StartCoroutine(GameController.Instance.ResetGameAsync(null));
             pausePanel.gameObject.SetActive(false);
-            GameController.Instance.Reset();
-            startPanel.Show();
+            startPanel.ShowStart();
         }
         #endregion
 
@@ -102,6 +104,10 @@ namespace GirlDash.UI {
 
         void Update() {
             controller.HoldFire(is_firing_);
+        }
+
+        void Start() {
+            startPanel.ShowStart();
         }
     }
 }

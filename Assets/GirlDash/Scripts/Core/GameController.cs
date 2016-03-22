@@ -1,4 +1,5 @@
 ﻿using GirlDash.Map;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,9 +28,12 @@ namespace GirlDash {
 
         public bool debugMode = false;
 
-        public float progress;
         public StateEnum state = StateEnum.kIdle;
 
+        private float progress_;
+        // The startingLine is the left border of whole map, so that our play doesn't start from the zero progress.
+        // We should record the initial progress to make the progress for player is zero.
+        private float init_progress_ = 0;
         private List<IGameComponent> components_ = new List<IGameComponent>();
 
         public float deadProgress {
@@ -47,11 +51,19 @@ namespace GirlDash {
                 SetPause(value);
             }
         }
+        // Real progress, starts from to startingLine as zero.
+        public float realProgress {
+            get { return progress_; }
+        }
+        // Progress to be recorded, starts from 'init_progress_'.
+        public float progressToRecord {
+            get { return Mathf.Max(0, progress_ - init_progress_); }
+        }
 
         private bool is_paused_ = false;
         private EnemyQueue enemy_queue_ = new EnemyQueue();
 
-        private IEnumerator ResetInternal() {
+        private IEnumerator ResetInternal(Action finishCB) {
             // Inits the map data.
             yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator(mapManager)));
 
@@ -59,8 +71,9 @@ namespace GirlDash {
 
             playerController.transform.position = playerSpawnPoint.transform.position;
 
-            progress = startingLine.GetOffset(playerController.transform).x;
-            RuntimeData.currentProgress = progress;
+            progress_ = startingLine.GetOffset(playerController.transform).x;
+            init_progress_ = progress_;
+            RuntimeData.currentProgress = 0;
 
             for (int i = 0; i < components_.Count; i++) {
                 components_[i].GameReady();
@@ -68,6 +81,10 @@ namespace GirlDash {
 
             state = StateEnum.kReady;
             SetPause(true);
+
+            if (finishCB != null) {
+                finishCB();
+            }
         }
 
         #region Game Events
@@ -91,19 +108,28 @@ namespace GirlDash {
             components_.Remove(component);
         }
 
-        public void Reset() {
-            if (state == StateEnum.kLoading || state == StateEnum.kReady) {
-                return;
+        public IEnumerator ResetGameAsync(Action finishCB) {
+            // If it's now loading in another coroutine, wait until it's done.
+            while (state == StateEnum.kLoading) {
+                yield return null;
+            }
+            // If it's already ready, just exit.
+            if (state == StateEnum.kReady) {
+                if (finishCB != null) {
+                    finishCB();
+                }
+                yield break;
             }
             state = StateEnum.kLoading;
-            RuntimeData.maxProgress = Mathf.Max(RuntimeData.maxProgress, progress);
+            RuntimeData.maxProgress = Mathf.Max(RuntimeData.maxProgress, progressToRecord);
             for (int i = 0; i < components_.Count; i++) {
                 components_[i].GameReset();
             }
-            StartCoroutine(ResetInternal());
+
+            StartCoroutine(ResetInternal(finishCB));
         }
 
-        public void GetOff() {
+        public void StartGame() {
             if (state != StateEnum.kReady) {
                 return;
             }
@@ -117,7 +143,7 @@ namespace GirlDash {
         public void OnGameOver() {
             if (isPlaying) {
                 state = StateEnum.kIdle;
-                RuntimeData.maxProgress = Mathf.Max(RuntimeData.maxProgress, progress);
+                RuntimeData.maxProgress = Mathf.Max(RuntimeData.maxProgress, progressToRecord);
                 Debug.Log("on game over");
 
                 for (int i = 0; i < components_.Count; i++) {
@@ -173,7 +199,7 @@ namespace GirlDash {
             // Preload pooling objects.
             yield return StartCoroutine(PoolManager.Instance.Load());
 
-            Reset();
+            yield return ResetGameAsync(null);
         }
 
         void FixedUpdate() {
@@ -181,15 +207,15 @@ namespace GirlDash {
                 return;
             }
             if (isPlaying) {
-                progress = startingLine.GetOffset(playerController.transform).x;
+                progress_ = startingLine.GetOffset(playerController.transform).x;
 
                 if (!debugMode) {
-                    mapManager.UpdateProgress(progress);
+                    mapManager.UpdateProgress(progress_);
                     playerController.Move(1);
                 }
             }
 
-            enemy_queue_.Update(progress);
+            enemy_queue_.Update(progress_);
         }
 
         void Update() {
@@ -197,7 +223,7 @@ namespace GirlDash {
                 return;
             }
             if (isPlaying) {
-                RuntimeData.currentProgress = progress;
+                RuntimeData.currentProgress = progressToRecord;
             }
         }
 
@@ -210,13 +236,7 @@ namespace GirlDash {
             GUI.Label(
                 new Rect(0, 50, 200, 50),
                 string.Format("HP: {0}\nProgress: {1}\nJump CD: {2}, Fire CD: {3}",
-                playerController.hp, progress, playerController.jumpCooldown, playerController.fireCooldown));
-
-            if (state == StateEnum.kIdle) {
-                if (GUI.Button(new Rect(0, 0, 100, 50), "Restart")) {
-                    Reset();
-                }
-            }
+                playerController.hp, progressToRecord, playerController.jumpCooldown, playerController.fireCooldown));
         }
         #endregion
     }

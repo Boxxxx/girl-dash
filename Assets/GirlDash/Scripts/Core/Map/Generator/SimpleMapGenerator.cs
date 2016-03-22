@@ -45,7 +45,7 @@ namespace GirlDash.Map {
                 if (random_.NextDouble() < 0.5) {
                     int enemy_type_index = random_.Next(0, 5);
                     EnemyData.EnemyType enemy_type = EnemyData.EnemyType.Scout + enemy_type_index;
-                    AddEnemy(enemy_type, random_.Next(0, Mathf.Max(1, ground_data.region.width - 1)));
+                    AddEnemy(EnemyData.EnemyType.Bomber, random_.Next(0, Mathf.Max(1, ground_data.region.width - 1)));
                 }
 
                 last_is_high_ground = this_is_high_ground;

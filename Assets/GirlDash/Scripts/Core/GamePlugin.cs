@@ -12,7 +12,7 @@ namespace GirlDash {
             get { return controller_.isPlaying; }
         }
         public float progress {
-            get { return controller_.progress; }
+            get { return controller_.realProgress; }
         }
         public PlayerController player {
             get { return controller_.playerController; }
