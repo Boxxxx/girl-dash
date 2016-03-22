@@ -13,14 +13,14 @@ namespace GirlDash {
         public int uniqueId {
             get; private set;
         }
-        public int damage {
+        public float damage {
             get; private set;
         }
         public DamageGroup damageGroup {
             get; protected set;
         }
 
-        public void Reset(int damage, DamageGroup group) {
+        public void Reset(float damage, DamageGroup group) {
             uniqueId = ++id_counter;
             this.damage = damage;
             this.damageGroup = group;

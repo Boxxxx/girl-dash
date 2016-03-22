@@ -5,8 +5,6 @@ using System;
 
 namespace GirlDash {
     public abstract class Enemy : CharacterController {
-        public new float moveSpeed = 5f;
-        public new float jumpForce = 500f;
         public DamageArea damageArea;
 
         private bool is_action_ = false;
@@ -28,9 +26,9 @@ namespace GirlDash {
             CharacterData character_data = new CharacterData();
 
             character_data.name = enemy_data.enemyType.ToString();
-            character_data.moveSpeed = moveSpeed;
-            character_data.jumpInitForce = jumpForce;
-            character_data.maxJumpCnt = 1;
+            character_data.moveSpeed = enemy_data.moveSpeed;
+            character_data.jumpInitForce = enemy_data.jumpInitForce;
+            character_data.maxJumpCnt = enemy_data.maxJumpCnt;
             character_data.atk = enemy_data.fire_atk;
             character_data.hp = enemy_data.hp;
 

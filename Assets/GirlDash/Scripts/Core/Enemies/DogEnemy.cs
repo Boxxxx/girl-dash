@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace GirlDash {
     public class DogEnemy : Enemy {
-        public const float kActiveDistance = 10;
+        public float kActiveDistance = 5;
 
         protected override void Action() {
             StartCoroutine(JumpLogic());

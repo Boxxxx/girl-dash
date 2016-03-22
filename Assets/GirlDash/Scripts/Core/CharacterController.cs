@@ -19,9 +19,13 @@ namespace GirlDash {
         public bool invincible = false;
         public Transform groundChecker;
         public Transform targetPosition;
+        public Transform uiPosition;
 
         public Vector2 firePositionFluctuation = new Vector2(0, 0.1f);
         public float fireDirectionFluctuation = 5f;
+
+        public float moveGravity = 10;
+        public float moveSensitivity = 3;
 
         public bool isGrounded {
             get;
@@ -55,11 +59,11 @@ namespace GirlDash {
             get { return current_jump_cooldown_; }
         }
 
-        public int atk {
+        public float atk {
             get { return character_data_.atk; }
         }
 
-        public int hp {
+        public float hp {
             get { return hp_; }
             set {
                 if (hp_ != value) {
@@ -70,6 +74,9 @@ namespace GirlDash {
                     }
                 }
             }
+        }
+        public float hpRatio {
+            get { return Mathf.Clamp(hp / characterData.hp, 0, 1); }
         }
 
         // local position
@@ -94,7 +101,7 @@ namespace GirlDash {
         protected CharacterData character_data_;
         protected Muzzle muzzle_;
 
-        private int hp_ = 0;
+        private float hp_ = 0;
         private bool is_face_right_ = false;
         private bool cached_jump_trigger_ = false;
         private bool is_falling_ = false;
@@ -102,6 +109,7 @@ namespace GirlDash {
         private float move_axis_ = 0f;
         private int current_jump_counter_ = 0;
         private float current_jump_cooldown_ = 0;
+        private float last_horiz_axis_ = 0;
 
         private HashSet<int> hit_damagearea_ids = new HashSet<int>();
         private int damagearea_layer_mask_;
@@ -125,7 +133,9 @@ namespace GirlDash {
                 // If it's on ground now, clear the jump counter;
                 current_jump_counter_ = 0;
             }
-            cached_jump_trigger_ = true;
+            if (current_jump_cooldown_ < Consts.kSoftEps) {
+                cached_jump_trigger_ = true;
+            }
         }
 
         public void Move(float axis) {
@@ -133,7 +143,7 @@ namespace GirlDash {
                 return;
             }
 
-            move_axis_ = axis;
+            move_axis_ = CalculateMoveAxis(axis);
         }
 
         public void Die() {
@@ -144,7 +154,7 @@ namespace GirlDash {
 
             OnDied();
         }
-
+        
         public void Reset(CharacterData character_data) {
             isAlive = true;
 
@@ -153,7 +163,10 @@ namespace GirlDash {
             Debug.Log("Reset " + name);
 
             character_data_ = character_data;
-            hp_ = character_data_.hp;
+            hp = character_data_.hp;
+
+            last_horiz_axis_ = 0;
+            last_y_speed_ = 0;
 
             hit_damagearea_ids.Clear();
 
@@ -254,6 +267,39 @@ namespace GirlDash {
             last_y_speed_ = rigidbody2D_.velocity.y;
         }
 
+        private float CalculateMoveAxis(float horiz_axis) {
+            // There is a special case: when turn around immedately, the Input.GetAxis() will return a zero in one frame,
+            // which may lead to weird animation (right -> idle -> left).
+            // However, if we use not-so-large moveGravity, that frame the horiz_axis won't reduce to 0, so the horiz_axis != 0.
+            // And even more interesting is, the next frame this character will turn around, and we also have a non-zero horiz_axis.
+            // Wow, It solves the special case perfectly!
+            int horiz_direction = MathUtil.ToIntSign(horiz_axis);
+
+            if (last_horiz_axis_ * horiz_direction < 0) {
+                // If the direction changed, we ignore the last horiz axis.
+                // Which means, turn around immediately.
+                last_horiz_axis_ = 0;
+            }
+
+            if (horiz_direction != 0) {
+                horiz_axis = Mathf.Clamp(
+                    last_horiz_axis_ + Time.deltaTime * horiz_direction * moveSensitivity, -1f, 1f);
+            }
+            else {
+                // If the axis == 0, then we gradually reduce the horiz axis until stopped.
+                if (last_horiz_axis_ > 0) {
+                    horiz_axis = Mathf.Max(
+                        0, last_horiz_axis_ - Time.deltaTime * moveGravity);
+                }
+                else {  // last_horiz_axis_ < 0
+                    horiz_axis = Mathf.Min(
+                        0, last_horiz_axis_ + Time.deltaTime * moveGravity);
+                }
+            }
+            last_horiz_axis_ = horiz_axis;
+            return horiz_axis;
+        }
+
         protected virtual void HitByDamageArea(DamageArea damage_area) {
             if (hit_damagearea_ids.Contains(damage_area.uniqueId)) {
                 // Saint Seiya will never be hit by the same damage twice!
@@ -262,6 +308,7 @@ namespace GirlDash {
 
             hit_damagearea_ids.Add(damage_area.uniqueId);
             hp -= damage_area.damage;
+            Debug.Log("Hit to " + name);
             damage_area.OnTakeDamage(this);
         }
 

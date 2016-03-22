@@ -20,6 +20,8 @@ namespace GirlDash {
             public bool allowPoolToRecycle;
             [Tooltip("The way to notify the ObjectPool events to objects")]
             public NotificationType notificationType;
+            [Tooltip("The folder to contain this pool, if null, will create a new one")]
+            public Transform poolFolder;
 
             public string name {
                 get; private set;
@@ -102,10 +104,10 @@ namespace GirlDash {
         public bool Deallocate(GameObject obj) {
             if (using_objs_.Remove(obj)) {
                 unused_objs.Add(obj);
-                obj.transform.parent = parentTransform;
 
                 SendNotification(obj, "OnDeallocate");
                 obj.gameObject.SetActive(false);
+                obj.transform.parent = parentTransform;
                 return true;
             }
             return false;
@@ -119,9 +121,9 @@ namespace GirlDash {
         public void RecoverObjects(bool allow_complement) {
             foreach (var obj in using_objs_) {
                 if (obj != null) {
-                    obj.transform.parent = parentTransform;
                     SendNotification(obj, "OnDeallocate");
                     obj.gameObject.SetActive(false);
+                    obj.transform.parent = parentTransform;
 
                     unused_objs.Add(obj);
                 }

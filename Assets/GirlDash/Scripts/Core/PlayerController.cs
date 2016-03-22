@@ -32,7 +32,7 @@ namespace GirlDash {
             yield return null;
         }
 
-        public void GameStart() {
+        public void GameReady() {
             running_ = true;
             is_firing_ = false;
             current_fire_cooldown_ = 0;
@@ -40,10 +40,14 @@ namespace GirlDash {
             animator.Rebind();
         }
 
+        public void GameStart() {}
+
         public void GameOver() {
             Move(0);
             running_ = false;
         }
+
+        public void GameReset() {}
 
         public override void Fire() {
             if (!isAlive || muzzle_ == null /* must have a gun */ || current_fire_cooldown_ > Consts.kSoftEps /* gun must be cooldown */) {

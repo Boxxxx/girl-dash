@@ -24,7 +24,7 @@ namespace GirlDash.Map {
     }
 
     [System.Serializable]
-    public class EnemyData {
+    public class EnemyData : System.ICloneable {
         public enum EnemyType {
             Scout,
             Pioneer,
@@ -33,9 +33,9 @@ namespace GirlDash.Map {
             Bomber
         }
         public EnemyType enemyType = EnemyType.Scout;
-        public int hp = 1;
-        public int fire_atk = 1;
-        public int hit_atk = 1;
+        public float hp = 1;
+        public float fire_atk = 1;
+        public float hit_atk = 1;
         public float moveSpeed = 5.0f;
         public int maxJumpCnt = 2;
         public float jumpInitForce = 700.0f;
@@ -45,6 +45,18 @@ namespace GirlDash.Map {
         // Thus, we only set spawnPosition to integer coordinate,
         // however what it really means is the center of the 1 unit start from this spawnPosition.
         public MapVector spawnPosition;
+
+        public object Clone() {
+            return new EnemyData() {
+                enemyType = enemyType,
+                hp = hp,
+                fire_atk = fire_atk,
+                hit_atk = hit_atk,
+                moveSpeed = moveSpeed,
+                maxJumpCnt = maxJumpCnt,
+                jumpInitForce = jumpInitForce
+            };
+        }
     }
 
     [System.Serializable]

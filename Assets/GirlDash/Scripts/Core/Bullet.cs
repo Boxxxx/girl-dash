@@ -21,11 +21,11 @@ namespace GirlDash {
             current_time_ = 0;
         }
 
-        public void InitDamage(int atk, DamageGroup group) {
+        public void InitDamage(float atk, DamageGroup group) {
             Reset(atk, group);
         }
 
-        public void Reflect(int damage, DamageGroup group) {
+        public void Reflect(float damage, DamageGroup group) {
             Reset(damage, group);
             InitTransform(transform.position, -direction);
         }

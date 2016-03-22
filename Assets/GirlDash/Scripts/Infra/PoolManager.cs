@@ -27,11 +27,16 @@ namespace GirlDash {
                 return null;
             }
 
-            var folder = new GameObject(options.name);
-            folder.transform.parent = transform;
-            folder.transform.position = Vector3.zero;
+            Transform folder;
+            if (options.poolFolder != null) {
+                folder = options.poolFolder;
+            } else {
+                folder = new GameObject(options.name).transform;
+                folder.parent = transform;
+                folder.position = Vector3.zero;
+            }
 
-            var object_pool = new ObjectPool(options, folder.transform);
+            var object_pool = new ObjectPool(options, folder);
             pools_[options.name] = object_pool;
 
             return object_pool;
