@@ -234,7 +234,7 @@ namespace GirlDash {
 
             Vector2 speed = new Vector2(moveSpeed, rigidbody2D_.velocity.y);
             if (dash_rest_time_ > MathUtil.kLargeEps) {
-                speed = CalculateDashSpeedX(dash_rest_time_ / character_data_.dashTime);
+                speed = CalculateDynamicDashSpeed(dash_rest_time_ / character_data_.dashTime);
             }
             rigidbody2D_.velocity = new Vector2(
                 move_axis_ * speed.x * RuntimeConsts.mapScale, speed.y);
@@ -315,7 +315,8 @@ namespace GirlDash {
             return horiz_axis;
         }
 
-        private Vector2 CalculateDashSpeedX(float ratio) {
+        // Ratio from 1.0 to 0.0, the return value will override the character's speed.
+        private Vector2 CalculateDynamicDashSpeed(float ratio) {
             return dashSpeed;
         }
 
