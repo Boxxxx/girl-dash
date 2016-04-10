@@ -317,6 +317,8 @@ namespace GirlDash {
 
         // Ratio from 1.0 to 0.0, the return value will override the character's speed.
         private Vector2 CalculateDynamicDashSpeed(float ratio) {
+			Interpolator.EasingFunction ef = Interpolator.GetEasingFunction(Interpolator.EaseType.easeOutQuint);
+            Vector2 speed = new Vector2(ef(dashSpeed.x, moveSpeed, 1 - ratio), dashSpeed.y);
             return dashSpeed;
         }
 
