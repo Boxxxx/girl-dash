@@ -67,7 +67,7 @@ namespace GirlDash {
             // Inits the map data.
             yield return StartCoroutine(mapManager.Load(new SimpleMapGenerator(mapManager)));
 
-            yield return StartCoroutine(playerController.Load(new CharacterData()));
+            yield return StartCoroutine(playerController.Load(null) /* use default data */);
 
             playerController.transform.position = playerSpawnPoint.transform.position;
 

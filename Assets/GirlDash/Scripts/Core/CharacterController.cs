@@ -59,6 +59,10 @@ namespace GirlDash {
             get { return current_jump_cooldown_; }
         }
 
+        public Vector2 dashSpeed {
+            get { return character_data_.dashSpeed; }
+        }
+
         public float atk {
             get { return character_data_.atk; }
         }
@@ -113,6 +117,7 @@ namespace GirlDash {
 
         private HashSet<int> hit_damagearea_ids = new HashSet<int>();
         private int damagearea_layer_mask_;
+        private float dash_rest_time_ = 0;
 
         #region Public Methods
         public virtual void Fire() {
@@ -167,6 +172,7 @@ namespace GirlDash {
 
             last_horiz_axis_ = 0;
             last_y_speed_ = 0;
+            dash_rest_time_ = 0;
 
             hit_damagearea_ids.Clear();
 
@@ -222,8 +228,16 @@ namespace GirlDash {
             int direction = MathUtil.ToIntSign(move_axis_);
             animator_.SetBool(AnimatorParameters.IsMove, direction != 0);
 
+            if (dash_rest_time_ > 0) {
+                dash_rest_time_ = Mathf.Max(0, dash_rest_time_ - Time.deltaTime);
+            }
+
+            Vector2 speed = new Vector2(moveSpeed, rigidbody2D_.velocity.y);
+            if (dash_rest_time_ > MathUtil.kLargeEps) {
+                speed = CalculateDashSpeedX(dash_rest_time_ / character_data_.dashTime);
+            }
             rigidbody2D_.velocity = new Vector2(
-                move_axis_ * moveSpeed * RuntimeConsts.mapScale, rigidbody2D_.velocity.y);
+                move_axis_ * speed.x * RuntimeConsts.mapScale, speed.y);
 
             if (move_axis_ > 0 && !isFaceRight ||
                 move_axis_ < 0 && isFaceRight) {
@@ -237,12 +251,13 @@ namespace GirlDash {
                 if (current_jump_counter_ < character_data_.maxJumpCnt) {
                     ResetActionTrigger(AnimatorParameters.Fall);
                     if (current_jump_counter_ == 0) {
+                        // First jump is a normal jump
                         SetActionTrigger(AnimatorParameters.Jump);
                         rigidbody2D_.AddForce(new Vector2(0f, jumpForce /* we do not consider mapScale for jumpForce */));
                     } else {
-                        Vector2 velcoity = rigidbody2D_.velocity;
-                        velcoity.y = character_data_.doubleJumpSpeed;
-                        rigidbody2D_.velocity = velcoity;
+                        // Then it's a dash, both vertical and horizontal speed will be set.
+                        dash_rest_time_ = character_data_.dashTime;
+                        // MoveUpdate will update velocity.
                     }
                     
                     current_jump_counter_++;
@@ -300,6 +315,10 @@ namespace GirlDash {
             return horiz_axis;
         }
 
+        private Vector2 CalculateDashSpeedX(float ratio) {
+            return dashSpeed;
+        }
+
         protected virtual void HitByDamageArea(DamageArea damage_area) {
             if (hit_damagearea_ids.Contains(damage_area.uniqueId)) {
                 // Saint Seiya will never be hit by the same damage twice!
@@ -336,9 +355,9 @@ namespace GirlDash {
                 return;
             }
             GroundedUpdate();
-            MoveUpdate();
             JumpUpdate();
             FallUpdate();
+            MoveUpdate();
         }
 
         protected virtual void Update() {

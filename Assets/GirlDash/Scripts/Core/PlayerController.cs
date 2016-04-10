@@ -6,6 +6,7 @@ using System;
 namespace GirlDash {
     public class PlayerController : CharacterController, IGameComponent {
         public Animator animator;
+        public CharacterData defaultCharacterData;
 
         private Vector3 start_position_;
         private bool running_ = false;
@@ -25,6 +26,7 @@ namespace GirlDash {
         }
 
         public IEnumerator Load(CharacterData character_data) {
+            character_data = character_data == null ? defaultCharacterData : character_data;
             rigidbody2D_.isKinematic = true;
             transform.position = start_position_;
             Debug.Log("player position: " + transform.position);
